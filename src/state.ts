@@ -1,5 +1,5 @@
 import { readStorage, writeStorage } from './browser';
-import { CONFIG, DEADLINE, LIMITS, STORAGE_KEY, type Mode } from './config';
+import { CONFIG, DEADLINE, MAX_SESSIONS, STORAGE_KEY, type Mode } from './config';
 
 export interface AppState {
   mode: Mode;
@@ -53,7 +53,7 @@ export function sanitize(raw: Partial<AppState> | null | undefined): AppState {
     running: running && endAt !== null,
     endAt: endAt === null ? null : Math.min(endAt, Date.now() + maxMs),
     remaining: remaining === null ? null : clampNumber(remaining, 0, maxMs, 0),
-    sessions: clampNumber(raw.sessions, 0, LIMITS.sessions, 0),
+    sessions: clampNumber(raw.sessions, 0, MAX_SESSIONS, 0),
     brownNoise: raw.brownNoise !== false,
     metronome: raw.metronome !== false,
     minimized: raw.minimized === true
@@ -88,7 +88,7 @@ function settle(state: AppState): AppState {
   };
 
   if (finished.mode === 'focus') {
-    finished.sessions = Math.min(LIMITS.sessions, finished.sessions + 1);
+    finished.sessions = Math.min(MAX_SESSIONS, finished.sessions + 1);
   }
 
   finished.mode = finished.mode === 'focus' ? 'break' : 'focus';

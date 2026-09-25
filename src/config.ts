@@ -23,12 +23,8 @@ export const COMPLETE = 'focus-exe/complete';
 
 export const DEADLINE = new Date(2026, 11, 31, 23, 59, 59, 999);
 
-export const LIMITS = Object.freeze({
-  minutes: { min: 1, max: 180 },
-  bpm: { min: 30, max: 180 },
-  volume: { min: 0, max: 1 },
-  sessions: 9999
-});
+/** Upper bound for the session counter, so a tampered value cannot render absurd text. */
+export const MAX_SESSIONS = 9999;
 
 export const CONFIG = Object.freeze({
   focusMinutes: 25,
