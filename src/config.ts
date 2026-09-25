@@ -2,12 +2,6 @@ export type Mode = 'focus' | 'break';
 
 export const HOST_ID = 'focus-exe-host';
 
-/** Hosts owned by older builds; removed before mounting to avoid duplicates. */
-export const LEGACY_HOST_IDS = [
-  'vr-preexam-focus-widget-host',
-  'skilljar-focus-assistant-host'
-] as const;
-
 export const LOG_PREFIX = '[Focus Exe]';
 
 export const STORAGE_KEY = 'focusExeStateV1';

@@ -1,8 +1,8 @@
 # Focus Exe
 
-A Manifest V3 browser extension: a Pomodoro focus timer with an exam deadline countdown,
-brown noise and a 60 BPM neuro-metronome — the Skilljar pre-exam focus widget, rebuilt as a
-real extension instead of a userscript.
+A Manifest V3 browser extension: a Pomodoro focus timer with a deadline countdown, brown noise
+and a 60 BPM neuro-metronome. It runs on any site, on demand, and is torn down when you
+dismiss it.
 
 It is **not** pinned to one site. The widget is summoned on the page you are looking at, and
 it works on any site, any tab, and is torn down again when you dismiss it.

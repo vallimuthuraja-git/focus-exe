@@ -1,6 +1,6 @@
 import { createAudioEngine } from './audio';
 import { sendMessage } from './browser';
-import { COMMAND, COMPLETE, HOST_ID, LEGACY_HOST_IDS } from './config';
+import { COMMAND, COMPLETE, HOST_ID } from './config';
 import {
   createStore,
   durationMs,
@@ -23,9 +23,6 @@ let ready = false;
 const queue: string[] = [];
 
 function mountHost(): HTMLElement {
-  for (const id of LEGACY_HOST_IDS) {
-    document.getElementById(id)?.remove();
-  }
   document.getElementById(HOST_ID)?.remove();
 
   const host = document.createElement('div');
