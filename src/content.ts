@@ -12,7 +12,7 @@ import {
 import { createWidget, WIDGET_STYLES, type ActionKind, type SettingKey } from './widget';
 
 const TICK_MS = 1000;
-const COMMANDS: readonly string[] = [COMMAND.toggle, COMMAND.show, COMMAND.hide];
+const COMMANDS: readonly string[] = [COMMAND.toggle, COMMAND.show, COMMAND.hide, COMMAND.about];
 
 interface WidgetSession {
   dispose(): void;
@@ -110,6 +110,10 @@ async function mount(): Promise<WidgetSession> {
   }
 
   function runAction(kind: ActionKind): void {
+    if (kind === 'about') {
+      void sendMessage({ type: COMMAND.about });
+      return;
+    }
     switch (kind) {
       case 'toggle': {
         if (state.running) {
@@ -203,6 +207,10 @@ function unmount(): void {
 }
 
 async function handleCommand(type: string): Promise<void> {
+  if (type === COMMAND.about) {
+    void sendMessage({ type: COMMAND.about });
+    return;
+  }
   if (type === COMMAND.hide) {
     unmount();
     return;

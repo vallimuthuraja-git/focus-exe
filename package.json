@@ -5,6 +5,10 @@
   "description": "Manifest V3 focus assistant: Pomodoro timer, deadline countdown, brown noise and 60 BPM metronome.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vallimuthuraja-git/focus-exe.git"
+  },
   "engines": {
     "node": ">=18"
   },
@@ -14,7 +18,8 @@
     "pack": "node build.mjs --zip",
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && node build.mjs --zip",
-    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\""
+    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
+    "page": "node build.mjs --page"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.28",

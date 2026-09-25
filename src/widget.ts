@@ -3,7 +3,7 @@ import { createDeadlineClock, createFocusClock, updateDeadlineClock, updateFocus
 import { COLORS, CONFIG, DEADLINE, ICONS, type IconName } from './config';
 import { deadlineRemainingMs, durationMs, type AppState } from './state';
 
-export type ActionKind = 'toggle' | 'reset' | 'switch';
+export type ActionKind = 'toggle' | 'reset' | 'switch' | 'about';
 export type SettingKey = 'brownNoise' | 'metronome';
 
 export interface WidgetHooks {
@@ -236,6 +236,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
   }
 
   const minimizeBtn = button('icon-button minimize-button', 'minimize', '', 'Minimize');
+  const aboutBtn = button('icon-button about-button', 'info', '', 'About Focus Exe');
   const settingsBtn = button('icon-button settings-button', 'settings', '', 'Audio settings');
   const startBtn = button('action-button start-button', 'play', 'Start Focus', 'Start focus timer');
   const resetBtn = button('action-button reset-button', 'reset', 'Reset', 'Reset timer');
@@ -244,7 +245,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
   settingsBtn.setAttribute('aria-haspopup', 'dialog');
   settingsBtn.setAttribute('aria-expanded', 'false');
 
-  need(root, '.header-actions').appendChild(minimizeBtn);
+  need(root, '.header-actions').append(aboutBtn, minimizeBtn);
   need(root, '.controls').append(startBtn, resetBtn, switchBtn, settingsBtn);
 
   const popStart = popButton('pop-start', 'play', 'Start Focus');
@@ -412,6 +413,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
     hooks.onMinimize(minimized);
   });
 
+  toggleFrom(aboutBtn, () => hooks.onAction('about'));
   toggleFrom(settingsBtn, () => toggleSettings(false));
   toggleFrom(popSettings, () => toggleSettings(true));
   toggleFrom(popDeadline, toggleDeadline);

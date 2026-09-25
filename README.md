@@ -14,6 +14,7 @@ it works on any site, any tab, and is torn down again when you dismiss it.
 | Click the extension icon | Show the widget on the current page (press again to hide) |
 | `Alt+Shift+F` | Same, without leaving the keyboard (rebindable in your browser's shortcut settings) |
 | Click anywhere on the page | Widget collapses to its compact bar |
+| Click ⓘ in the widget | Open the bundled product page in a new tab |
 
 Features: 25/5 focus and recovery modes, mechanical flip-clock digits, a countdown to the
 deadline, session counter with progress bar, brown noise + metronome toggles, confirmations on
@@ -28,6 +29,7 @@ npm run build        # all browsers into dist/
 npm run dev          # unminified with inline sourcemaps
 npm run pack         # also writes a signed-ready .zip per browser
 npm run verify       # type-check + packaged build
+npm run page         # product page only -> dist/page/index.html
 node build.mjs --target=firefox        # one browser only
 ```
 
@@ -57,6 +59,29 @@ the Xcode converter, see below).
 Everything tunable lives in `src/config.ts`: the deadline date, focus/break lengths, metronome
 BPM, volumes, widget widths and roll animation. The extension version follows `package.json`.
 
+## Product page
+
+`page/index.html` is the public product page: hero, features, install steps per browser, privacy,
+roadmap, support and FAQ. It is a single self-contained file — no frameworks, no external fonts,
+no images, no network requests — and it is written into every build at `dist/<browser>/page/`,
+where the widget's ⓘ button opens it (`chrome-extension://<id>/page/index.html`).
+
+Build-time placeholders are substituted by `build.mjs`:
+
+| Placeholder | Replaced with |
+| --- | --- |
+| `__VERSION__` | `package.json` version |
+| `__RELEASE_BASE__` | `<repo>/releases/download/v<version>` |
+| `__REPO_URL__` | `package.json` repository URL |
+
+The donation and support links are the one thing you must fill in: edit the `SUPPORT` object in
+the `<script>` at the bottom of `page/index.html` (Buy Me a Coffee handle, GitHub username, UPI
+id, PayPal link) and run `npm run build`. Until a handle is set, the button keeps pointing at the
+platform's home page and shows a small setup note, so the page can never 404.
+
+Deploying the page: it is a static file, so GitHub Pages, Netlify, Cloudflare Pages or any static
+host works. `npm run page` writes a rendered copy to `dist/page/index.html` for that purpose.
+
 ## Layout
 
 ```
@@ -70,7 +95,8 @@ src/widget.css    widget stylesheet
 src/content.ts    injected on demand: mount, unmount, tick loop, state machine
 src/background.ts service worker: inject on summon, show completion notifications
 src/manifest.ts   per-browser MV3 manifests
-build.mjs         esbuild bundling, icon generation, packaging
+page/index.html   public product page (bundled into every build)
+build.mjs         esbuild bundling, icon generation, page render, packaging
 ```
 
 ## Security notes

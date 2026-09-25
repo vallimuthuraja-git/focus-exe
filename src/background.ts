@@ -1,5 +1,5 @@
 import { runtimeUrl } from './browser';
-import { COMMAND, COMPLETE, type Mode } from './config';
+import { COMMAND, COMPLETE, PAGE_PATH, type Mode } from './config';
 
 const COPY: Record<Mode, { title: string; message: string }> = {
   focus: {
@@ -80,6 +80,13 @@ chrome.runtime.onMessage.addListener((message: unknown, sender) => {
     return false;
   }
   const payload = message as { type?: unknown; mode?: unknown };
+
+  if (payload.type === COMMAND.about) {
+    // The widget cannot open tabs itself, so it asks the worker to.
+    chrome.tabs.create({ url: runtimeUrl(PAGE_PATH) }, () => void chrome.runtime.lastError);
+    return false;
+  }
+
   if (payload.type !== COMPLETE) {
     return false;
   }

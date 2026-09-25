@@ -154,6 +154,24 @@ function renderIcon(size) {
 
 /* ------------------------------- build --------------------------------- */
 
+const repoUrl = String(pkg.repository?.url ?? '')
+  .replace(/^git\+/, '')
+  .replace(/\.git$/, '');
+const releaseBase = `${repoUrl}/releases/download/v${pkg.version}`;
+const pageSource = await readFile(join(root, 'page/index.html'), 'utf8');
+const pageHtml = pageSource
+  .replaceAll('__VERSION__', pkg.version)
+  .replaceAll('__RELEASE_BASE__', releaseBase)
+  .replaceAll('__REPO_URL__', repoUrl);
+
+if (flags.has('--page')) {
+  // preview only: render the product page without bundling the extension
+  await mkdir(join(dist, 'page'), { recursive: true });
+  await writeFile(join(dist, 'page/index.html'), pageHtml);
+  console.log(`Product page v${pkg.version} -> dist/page/index.html`);
+  process.exit(0);
+}
+
 await rm(cache, { recursive: true, force: true });
 await mkdir(cache, { recursive: true });
 
@@ -198,6 +216,7 @@ for (const target of targets) {
   const out = join(dist, target.dir);
   await rm(out, { recursive: true, force: true });
   await mkdir(join(out, 'icons'), { recursive: true });
+  await mkdir(join(out, 'page'), { recursive: true });
 
   await copyFile(join(cache, 'content.js'), join(out, 'content.js'));
   await copyFile(join(cache, 'background.js'), join(out, 'background.js'));
@@ -205,6 +224,7 @@ for (const target of targets) {
     await writeFile(join(out, `icons/icon${size}.png`), data);
   }
   await writeFile(join(out, 'manifest.json'), `${JSON.stringify(target.manifest, null, 2)}\n`);
+  await writeFile(join(out, 'page/index.html'), pageHtml);
 
   if (wantZip) {
     const archive = join(dist, `focus-exe-${pkg.version}-${target.dir}.zip`);
