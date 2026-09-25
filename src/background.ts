@@ -1,0 +1,102 @@
+import { runtimeUrl } from './browser';
+import { COMMAND, COMPLETE, type Mode } from './config';
+
+const COPY: Record<Mode, { title: string; message: string }> = {
+  focus: {
+    title: 'Focus session complete',
+    message: 'Take a short recovery break.'
+  },
+  break: {
+    title: 'Break complete',
+    message: 'Back to the next focus session.'
+  }
+};
+
+function activeTabId(): Promise<number | null> {
+  return new Promise(resolve => {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      const id = tabs?.[0]?.id;
+      resolve(typeof id === 'number' ? id : null);
+    });
+  });
+}
+
+function sendToTab(tabId: number, type: string): Promise<boolean> {
+  return new Promise(resolve => {
+    chrome.tabs.sendMessage(tabId, { type }, () => {
+      resolve(!chrome.runtime.lastError);
+    });
+  });
+}
+
+/**
+ * The widget lives only while the user wants it: the tab is granted on the
+ * click/shortcut gesture, the script is injected on demand and torn down by a
+ * second summon. No page keeps running our code once it is dismissed.
+ */
+async function summon(tabId: number): Promise<void> {
+  // A live listener means the script is already in this page: just toggle it.
+  if (await sendToTab(tabId, COMMAND.toggle)) {
+    return;
+  }
+  // Otherwise inject; the script mounts itself and listens for later commands.
+  await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+}
+
+async function toggleActiveTab(): Promise<void> {
+  const tabId = await activeTabId();
+  if (tabId === null) {
+    return;
+  }
+  try {
+    await summon(tabId);
+  } catch (error) {
+    console.warn('[Focus Exe] Could not open the widget on this page.', error);
+  }
+}
+
+chrome.action.onClicked.addListener(tab => {
+  if (typeof tab.id === 'number') {
+    void summon(tab.id).catch(error => {
+      console.warn('[Focus Exe] Injection blocked on this page.', error);
+    });
+  }
+});
+
+chrome.commands?.onCommand.addListener(command => {
+  if (command === 'focus-exe-toggle') {
+    void toggleActiveTab();
+  }
+});
+
+let sequence = 0;
+
+chrome.runtime.onMessage.addListener((message: unknown, sender) => {
+  // Only messages from this extension's own content scripts are trusted.
+  if (sender?.id !== chrome.runtime.id) {
+    return false;
+  }
+  if (typeof message !== 'object' || message === null) {
+    return false;
+  }
+  const payload = message as { type?: unknown; mode?: unknown };
+  if (payload.type !== COMPLETE) {
+    return false;
+  }
+
+  const mode: Mode = payload.mode === 'break' ? 'break' : 'focus';
+  const copy = COPY[mode];
+
+  chrome.notifications.create(
+    `focus-exe-${mode}-${Date.now()}-${sequence++}`,
+    {
+      type: 'basic',
+      iconUrl: runtimeUrl('icons/icon128.png'),
+      title: copy.title,
+      message: copy.message
+    },
+    () => void chrome.runtime.lastError
+  );
+
+  return false;
+});

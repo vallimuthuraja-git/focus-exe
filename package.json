@@ -1,0 +1,24 @@
+{
+  "name": "focus-exe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Manifest V3 focus assistant: Pomodoro timer, deadline countdown, brown noise and 60 BPM metronome.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --dev",
+    "pack": "node build.mjs --zip",
+    "typecheck": "tsc --noEmit",
+    "verify": "tsc --noEmit && node build.mjs --zip",
+    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\""
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.28",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  }
+}
