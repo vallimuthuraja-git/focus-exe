@@ -29,6 +29,7 @@ npm run build        # all browsers into dist/
 npm run dev          # unminified with inline sourcemaps
 npm run pack         # also writes a signed-ready .zip per browser
 npm run verify       # type-check + packaged build
+npm test             # build, then run the suites in test/
 npm run page         # product page only -> dist/page/index.html
 node build.mjs --target=firefox        # one browser only
 ```
@@ -54,10 +55,28 @@ the Xcode converter, see below).
   the signed zip to addons.mozilla.org.
 - Safari: ship through the App Store, the Xcode converter produces the Xcode project.
 
+## Test
+
+`npm test` builds and then runs three suites (109 checks) in `test/`:
+
+| Suite | Covers |
+| --- | --- |
+| `test/page.mjs` | the product page: no build placeholders, no external requests, no inline handlers, support-link resolution |
+| `test/worker.mjs` | the service worker: inject-or-toggle, sender checks, fixed notification copy |
+| `test/smoke.mjs` | the widget end to end in jsdom: mount, confirm, run, pause, settle, minimise, teardown, hostile storage |
+
+The suites load the **built** bundles from `dist/chrome/`, not the TypeScript
+sources, so they check what actually ships. `npm run verify` type-checks and
+packages but does not run them; `npm test` is the full gate. CI runs both.
+
 ## Configuration
 
 Everything tunable lives in `src/config.ts`: the deadline date, focus/break lengths, metronome
 BPM, volumes, widget widths and roll animation. The extension version follows `package.json`.
+
+> `DEADLINE` is a build-time constant and is not user-editable in v1. Once it passes, the widget
+> counts down to `0` and stays there, because that is what the deadline you compiled means. Change
+> the date in `src/config.ts` and rebuild to move it; an editable deadline is on the v2 list.
 
 ## Product page
 
@@ -97,6 +116,7 @@ src/background.ts service worker: inject on summon, show completion notification
 src/manifest.ts   per-browser MV3 manifests
 page/index.html   public product page (bundled into every build)
 build.mjs         esbuild bundling, icon generation, page render, packaging
+test/             jsdom suites: page, worker, widget smoke
 ```
 
 ## Security notes

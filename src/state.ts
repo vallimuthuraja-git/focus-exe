@@ -27,8 +27,19 @@ export function defaultState(): AppState {
   };
 }
 
+/**
+ * `Number(null)`, `Number('')` and `Number([])` are all 0, and
+ * `Number.isFinite(0)` is true — so a `Number.isFinite(Number(x))` guard lets a
+ * null through as 0. Only a real number is accepted here; anything else is
+ * treated as absent, which is what "unknown" means for a timestamp or a
+ * remaining duration.
+ */
+function finiteOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
+  const parsed = typeof value === 'number' ? value : Number.NaN;
   if (!Number.isFinite(parsed)) {
     return fallback;
   }
@@ -45,8 +56,12 @@ export function sanitize(raw: Partial<AppState> | null | undefined): AppState {
   const mode: Mode = raw.mode === 'break' ? 'break' : 'focus';
   const maxMs = (mode === 'focus' ? CONFIG.focusMinutes : CONFIG.breakMinutes) * 60_000;
   const running = raw.running === true;
-  const endAt = Number.isFinite(Number(raw.endAt)) && running ? Number(raw.endAt) : null;
-  const remaining = Number.isFinite(Number(raw.remaining)) ? Number(raw.remaining) : null;
+  // A null endAt means "not set", not "epoch 0" — coercing it to 0 would make
+  // reconcile() settle a phantom completed session on the very next mount.
+  const endAt = running ? finiteOrNull(raw.endAt) : null;
+  // Likewise, remaining:null is idle, not zero. remainingMs() treats any
+  // non-null remaining as a paused duration, so a coerced 0 would render 0:00.
+  const remaining = finiteOrNull(raw.remaining);
 
   return {
     mode,

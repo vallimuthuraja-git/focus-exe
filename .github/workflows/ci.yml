@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      # `npm test` builds first (pretest), so this also covers the build and
+      # the rendered product page. The suites run against the built bundles in
+      # dist/, which is what actually ships.
+      - name: Test
+        run: npm test
+
+      - name: Package
+        run: npm run pack
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-exe-packages
+          path: dist/*.zip
+          if-no-files-found: error
+
+  publish-page:
+    # The product page is a static file; redeploy it whenever page/index.html
+    # changes on main so the live site never drifts from the extension bundle.
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run page
+
+      - name: Publish to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # gh-pages is an orphan branch holding only the rendered page
+          git checkout --orphan gh-pages
+          git rm -rf --cached . -q
+          cp dist/page/index.html index.html
+          touch .nojekyll
+          git add index.html .nojekyll
+          git commit -m "Deploy product page from ${GITHUB_SHA}"
+          git push --force origin gh-pages
