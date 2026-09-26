@@ -45,6 +45,10 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      # Without this the default GITHUB_TOKEN is read-only and the push to
+      # gh-pages fails with "Permission to ... denied to github-actions[bot]".
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
