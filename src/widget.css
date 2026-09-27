@@ -756,11 +756,9 @@ button {
     }
 }
 
+/* The mechanical clock roll is intentionally left out of this block: the digit
+   scroll is the product's signature motion and always runs. */
 @media (prefers-reduced-motion: reduce) {
-    .reel.rolling {
-        animation-duration: 1ms;
-    }
-
     .assistant,
     .pop-button,
     .progress-fill {

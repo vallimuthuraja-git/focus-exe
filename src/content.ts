@@ -72,7 +72,6 @@ async function mount(): Promise<WidgetSession> {
   let state: AppState = reconcile(await loadState()).state;
   const audio = createAudioEngine();
   const store = createStore(() => state);
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const host = mountHost();
   const shadow = host.attachShadow({ mode: 'closed' });
   const style = document.createElement('style');
@@ -98,7 +97,9 @@ async function mount(): Promise<WidgetSession> {
   widget.setMinimized(state.minimized);
 
   function render(animate: boolean): void {
-    widget.render(state, remainingMs(state), animate && !reducedMotion);
+    // The mechanical roll is never suppressed: the original app always scrolls
+    // its digits, and `animate` is the only switch that drives it.
+    widget.render(state, remainingMs(state), animate);
   }
 
   function commit(): void {
