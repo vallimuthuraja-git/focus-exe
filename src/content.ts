@@ -9,10 +9,24 @@ import {
   remainingMs,
   type AppState
 } from './state';
-import { createWidget, WIDGET_STYLES, type ActionKind, type SettingKey } from './widget';
+import type { SettingKey, SettingsLink } from './widget';
+import { createWidget, WIDGET_STYLES, type ActionKind } from './widget';
 
 const TICK_MS = 1000;
-const COMMANDS: readonly string[] = [COMMAND.toggle, COMMAND.show, COMMAND.hide, COMMAND.about];
+const COMMANDS: readonly string[] = [
+  COMMAND.toggle,
+  COMMAND.show,
+  COMMAND.hide,
+  COMMAND.about,
+  COMMAND.repo
+];
+
+/** Settings links are resolved by the worker, which is the only context that
+ *  may open a tab. The widget only names the target. */
+const LINK_COMMAND: Record<SettingsLink, string> = {
+  about: COMMAND.about,
+  github: COMMAND.repo
+};
 
 interface WidgetSession {
   dispose(): void;
@@ -72,6 +86,7 @@ async function mount(): Promise<WidgetSession> {
     onGesture: () => void audio.unlock(),
     onAction: runAction,
     onSetting: setSetting,
+    onOpen: openLink,
     onMinimize: minimized => {
       state = { ...state, minimized };
       store.save();
@@ -109,11 +124,11 @@ async function mount(): Promise<WidgetSession> {
     commit();
   }
 
+  function openLink(target: SettingsLink): void {
+    void sendMessage({ type: LINK_COMMAND[target] });
+  }
+
   function runAction(kind: ActionKind): void {
-    if (kind === 'about') {
-      void sendMessage({ type: COMMAND.about });
-      return;
-    }
     switch (kind) {
       case 'toggle': {
         if (state.running) {
@@ -207,8 +222,8 @@ function unmount(): void {
 }
 
 async function handleCommand(type: string): Promise<void> {
-  if (type === COMMAND.about) {
-    void sendMessage({ type: COMMAND.about });
+  if (type === COMMAND.about || type === COMMAND.repo) {
+    void sendMessage({ type });
     return;
   }
   if (type === COMMAND.hide) {

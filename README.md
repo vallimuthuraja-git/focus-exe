@@ -13,8 +13,8 @@ it works on any site, any tab, and is torn down again when you dismiss it.
 | --- | --- |
 | Click the extension icon | Show the widget on the current page (press again to hide) |
 | `Alt+Shift+F` | Same, without leaving the keyboard (rebindable in your browser's shortcut settings) |
+| Open settings | Audio toggles, plus *About & support* and *GitHub* (both open in a new tab) |
 | Click anywhere on the page | Widget collapses to its compact bar |
-| Click ⓘ in the widget | Open the bundled product page in a new tab |
 
 Features: 25/5 focus and recovery modes, mechanical flip-clock digits, a countdown to the
 deadline, session counter with progress bar, brown noise + metronome toggles, confirmations on
@@ -57,7 +57,7 @@ the Xcode converter, see below).
 
 ## Test
 
-`npm test` builds and then runs three suites (109 checks) in `test/`:
+`npm test` builds and then runs three suites (131 checks) in `test/`:
 
 | Suite | Covers |
 | --- | --- |
@@ -83,7 +83,8 @@ BPM, volumes, widget widths and roll animation. The extension version follows `p
 `page/index.html` is the public product page: hero, features, install steps per browser, privacy,
 roadmap, support and FAQ. It is a single self-contained file — no frameworks, no external fonts,
 no images, no network requests — and it is written into every build at `dist/<browser>/page/`,
-where the widget's ⓘ button opens it (`chrome-extension://<id>/page/index.html`).
+where the widget's *About & support* settings row opens it
+(`chrome-extension://<id>/page/index.html`).
 
 Build-time placeholders are substituted by `build.mjs`:
 
@@ -109,8 +110,11 @@ src/browser.ts    promise wrappers over the extension APIs (callback flavour = p
 src/state.ts      state shape, sanitising, persistence (chrome.storage.local)
 src/audio.ts      Web Audio: brown noise + look-ahead metronome scheduler
 src/clock.ts      mechanical split-flap digit reels
-src/widget.ts     shadow-DOM UI, styles, panels, confirmations
+src/widget.ts     shadow-DOM shell, cards, controls, confirmations
 src/widget.css    widget stylesheet
+src/settings.ts   settings panel: audio toggles + About/GitHub rows
+src/settings.css  settings panel stylesheet
+src/ui.ts         shared shadow-DOM builders (icon, button, lookup)
 src/content.ts    injected on demand: mount, unmount, tick loop, state machine
 src/background.ts service worker: inject on summon, show completion notifications
 src/manifest.ts   per-browser MV3 manifests

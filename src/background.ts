@@ -1,5 +1,5 @@
 import { runtimeUrl } from './browser';
-import { COMMAND, COMPLETE, PAGE_PATH, type Mode } from './config';
+import { COMMAND, COMPLETE, PAGE_PATH, REPO_URL, type Mode } from './config';
 
 const COPY: Record<Mode, { title: string; message: string }> = {
   focus: {
@@ -81,9 +81,11 @@ chrome.runtime.onMessage.addListener((message: unknown, sender) => {
   }
   const payload = message as { type?: unknown; mode?: unknown };
 
-  if (payload.type === COMMAND.about) {
-    // The widget cannot open tabs itself, so it asks the worker to.
-    chrome.tabs.create({ url: runtimeUrl(PAGE_PATH) }, () => void chrome.runtime.lastError);
+  if (payload.type === COMMAND.about || payload.type === COMMAND.repo) {
+    // The widget cannot open tabs itself, so it asks the worker to. The target
+    // is a fixed URL chosen here, never one supplied by the message.
+    const url = payload.type === COMMAND.repo ? REPO_URL : runtimeUrl(PAGE_PATH);
+    chrome.tabs.create({ url }, () => void chrome.runtime.lastError);
     return false;
   }
 

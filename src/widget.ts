@@ -1,15 +1,20 @@
-import styles from './widget.css';
+import settingsStyles from './settings.css';
+import widgetStyles from './widget.css';
 import { createDeadlineClock, createFocusClock, updateDeadlineClock, updateFocusClock } from './clock';
-import { COLORS, CONFIG, DEADLINE, ICONS, type IconName } from './config';
+import { COLORS, CONFIG, DEADLINE } from './config';
+import { createSettingsPanel, type SettingKey, type SettingsLink } from './settings';
 import { deadlineRemainingMs, durationMs, type AppState } from './state';
+import { button, icon, need, popButton, replaceIcon } from './ui';
 
-export type ActionKind = 'toggle' | 'reset' | 'switch' | 'about';
-export type SettingKey = 'brownNoise' | 'metronome';
+export type { SettingKey, SettingsLink } from './settings';
+
+export type ActionKind = 'toggle' | 'reset' | 'switch';
 
 export interface WidgetHooks {
   onGesture(): void;
   onAction(kind: ActionKind): void;
   onSetting(key: SettingKey, value: boolean): void;
+  onOpen(target: SettingsLink): void;
   onMinimize(minimized: boolean): void;
 }
 
@@ -21,7 +26,7 @@ export interface Widget {
   dispose(): void;
 }
 
-export const WIDGET_STYLES = styles;
+export const WIDGET_STYLES = `${widgetStyles}\n${settingsStyles}`;
 
 /** Static shell only: no interpolation, so no page or user data ever reaches innerHTML. */
 const MARKUP = `
@@ -86,8 +91,8 @@ const MARKUP = `
     <div class="mini-pop-controls"></div>
     <div class="mini-confirmation"></div>
 
-    <div class="settings-panel expanded-settings-panel" role="dialog" aria-label="Audio settings"></div>
-    <div class="settings-panel mini-settings-panel" role="dialog" aria-label="Audio settings"></div>
+    <div class="settings-panel expanded-settings-panel" role="dialog" aria-label="Settings"></div>
+    <div class="settings-panel mini-settings-panel" role="dialog" aria-label="Settings"></div>
 
     <div class="deadline-panel" role="dialog" aria-label="Deadline countdown">
         <div class="card-main">
@@ -112,97 +117,6 @@ const DATE_FORMAT = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   year: 'numeric'
 });
-
-function need<T extends Element>(root: ParentNode, selector: string): T {
-  const found = root.querySelector<T>(selector);
-  if (!found) {
-    throw new Error(`[Focus Exe] Missing widget node: ${selector}`);
-  }
-  return found;
-}
-
-function icon(name: IconName, className = ''): HTMLElement {
-  const wrapper = document.createElement('span');
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-
-  wrapper.className = ['material-icon', className].filter(Boolean).join(' ');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
-  path.setAttribute('d', ICONS[name]);
-  svg.appendChild(path);
-  wrapper.appendChild(svg);
-  return wrapper;
-}
-
-function button(className: string, iconName: IconName, label: string, title: string): HTMLButtonElement {
-  const node = document.createElement('button');
-  node.type = 'button';
-  node.className = className;
-  node.title = title;
-  node.setAttribute('aria-label', title);
-  node.appendChild(icon(iconName));
-
-  if (label) {
-    const text = document.createElement('span');
-    text.className = 'button-label';
-    text.textContent = label;
-    node.appendChild(text);
-  }
-  return node;
-}
-
-function popButton(className: string, iconName: IconName, title: string): HTMLButtonElement {
-  const node = button(`pop-button ${className}`, iconName, '', title);
-  node.dataset.tooltip = title;
-  return node;
-}
-
-function settingsPanel(label: string): { fragment: DocumentFragment; noise: HTMLInputElement; metronome: HTMLInputElement } {
-  const fragment = document.createDocumentFragment();
-  const title = document.createElement('div');
-  title.className = 'settings-title';
-  title.append(icon('settings'), document.createTextNode(label));
-
-  const rows: HTMLInputElement[] = [];
-  const toggles: Array<[string, IconName]> = [
-    ['Brown Noise', 'noise'],
-    [`${CONFIG.metronomeBpm} BPM Neuro-Metronome`, 'metronome']
-  ];
-
-  for (const [text, iconName] of toggles) {
-    const row = document.createElement('div');
-    const copy = document.createElement('div');
-    const caption = document.createElement('span');
-    const switchLabel = document.createElement('label');
-    const input = document.createElement('input');
-    const track = document.createElement('span');
-
-    row.className = 'setting-row';
-    copy.className = 'setting-copy';
-    caption.className = 'setting-label';
-    switchLabel.className = 'switch';
-    track.className = 'switch-track';
-
-    caption.textContent = text;
-    input.type = 'checkbox';
-    input.setAttribute('aria-label', text);
-
-    copy.append(icon(iconName, 'setting-icon'), caption);
-    switchLabel.append(input, track);
-    row.append(copy, switchLabel);
-    fragment.appendChild(row);
-    rows.push(input);
-  }
-
-  fragment.prepend(title);
-  return { fragment, noise: rows[0] as HTMLInputElement, metronome: rows[1] as HTMLInputElement };
-}
-
-function replaceIcon(target: HTMLElement, name: IconName): void {
-  target.querySelector('.material-icon')?.replaceWith(icon(name));
-}
 
 export function createWidget(hooks: WidgetHooks): Widget {
   const root = document.createElement('section');
@@ -236,8 +150,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
   }
 
   const minimizeBtn = button('icon-button minimize-button', 'minimize', '', 'Minimize');
-  const aboutBtn = button('icon-button about-button', 'info', '', 'About Focus Exe');
-  const settingsBtn = button('icon-button settings-button', 'settings', '', 'Audio settings');
+  const settingsBtn = button('icon-button settings-button', 'settings', '', 'Settings');
   const startBtn = button('action-button start-button', 'play', 'Start Focus', 'Start focus timer');
   const resetBtn = button('action-button reset-button', 'reset', 'Reset', 'Reset timer');
   const switchBtn = button('action-button switch-button', 'coffee', 'Start Break', 'Switch timer mode');
@@ -245,14 +158,14 @@ export function createWidget(hooks: WidgetHooks): Widget {
   settingsBtn.setAttribute('aria-haspopup', 'dialog');
   settingsBtn.setAttribute('aria-expanded', 'false');
 
-  need(root, '.header-actions').append(aboutBtn, minimizeBtn);
+  need(root, '.header-actions').append(minimizeBtn);
   need(root, '.controls').append(startBtn, resetBtn, switchBtn, settingsBtn);
 
   const popStart = popButton('pop-start', 'play', 'Start Focus');
   const popReset = popButton('pop-reset', 'reset', 'Reset timer');
   const popSwitch = popButton('pop-switch', 'coffee', 'Start Break');
   const popDeadline = popButton('deadline-pop-button', 'event', 'Show deadline');
-  const popSettings = popButton('settings-pop-button', 'settings', 'Audio settings');
+  const popSettings = popButton('settings-pop-button', 'settings', 'Settings');
   popSettings.setAttribute('aria-haspopup', 'dialog');
   popSettings.setAttribute('aria-expanded', 'false');
   need(root, '.mini-pop-controls').append(popStart, popReset, popSwitch, popDeadline, popSettings);
@@ -265,10 +178,11 @@ export function createWidget(hooks: WidgetHooks): Widget {
   const compactCancel = button('compact-cancel-button', 'cancel', 'Cancel', 'Cancel');
   need(root, '.mini-confirmation').append(compactConfirm, compactCancel);
 
-  const expandedSettings = settingsPanel('Audio settings');
-  const miniSettings = settingsPanel('Audio settings');
-  need(root, '.expanded-settings-panel').appendChild(expandedSettings.fragment);
-  need(root, '.mini-settings-panel').appendChild(miniSettings.fragment);
+  // Both views get the same panel, so About/GitHub and the audio toggles are
+  // reachable whether the widget is expanded or collapsed.
+  const panels = [createSettingsPanel('Settings'), createSettingsPanel('Settings')];
+  need(root, '.expanded-settings-panel').appendChild(panels[0].fragment);
+  need(root, '.mini-settings-panel').appendChild(panels[1].fragment);
 
   const confirmationMessage = need(root, '.confirmation-message');
   const expandedSettingsPanel = need(root, '.expanded-settings-panel');
@@ -288,8 +202,8 @@ export function createWidget(hooks: WidgetHooks): Widget {
   const sessionCount = need(root, '.session-count');
   const progressStatus = need(root, '.progress-status');
 
-  const noiseInputs = [expandedSettings.noise, miniSettings.noise];
-  const metronomeInputs = [expandedSettings.metronome, miniSettings.metronome];
+  const noiseInputs = panels.map(panel => panel.noise);
+  const metronomeInputs = panels.map(panel => panel.metronome);
 
   let lastState: AppState | null = null;
   let pending: ActionKind | null = null;
@@ -413,10 +327,20 @@ export function createWidget(hooks: WidgetHooks): Widget {
     hooks.onMinimize(minimized);
   });
 
-  toggleFrom(aboutBtn, () => hooks.onAction('about'));
   toggleFrom(settingsBtn, () => toggleSettings(false));
   toggleFrom(popSettings, () => toggleSettings(true));
   toggleFrom(popDeadline, toggleDeadline);
+
+  // About & support and GitHub live in the settings panel, once per view.
+  for (const panel of panels) {
+    for (const [target, node] of panel.links) {
+      toggleFrom(node, () => {
+        closeOverlays();
+        hooks.onGesture();
+        hooks.onOpen(target);
+      });
+    }
+  }
 
   confirmBtn.addEventListener('click', confirm);
   compactConfirm.addEventListener('click', confirm);

@@ -183,6 +183,7 @@ const shared = {
   sourcemap: dev ? 'inline' : false,
   legalComments: 'none',
   loader: { '.css': 'text' },
+  define: { __REPO_URL__: JSON.stringify(repoUrl) },
   logLevel: 'warning'
 };
 

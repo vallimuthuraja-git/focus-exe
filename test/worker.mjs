@@ -111,13 +111,26 @@ check('notification icon resolves', made[0]?.options.iconUrl.endsWith('icons/ico
 check('notification text is fixed copy', made.every(n => ['Focus session complete', 'Break complete'].includes(n.options.title) && n.options.message.length < 60));
 check('notification ids are unique', new Set(worker.calls.notifications.map(n => n.id)).size === worker.calls.notifications.length);
 
-/* the widget's info button asks the worker to open the bundled product page */
+/* the settings links ask the worker to open the product page or the repo */
 worker.handlers.message[0]({ type: 'focus-exe/command:about' }, { id: 'worker' });
 await new Promise(r => setTimeout(r, 20));
 check('about opens the product page', worker.calls.opened.length === 1 && worker.calls.opened[0].url.endsWith('page/index.html'), JSON.stringify(worker.calls.opened));
 worker.handlers.message[0]({ type: 'focus-exe/command:about' }, { id: 'someone-else' });
 await new Promise(r => setTimeout(r, 20));
 check('about ignores foreign senders', worker.calls.opened.length === 1);
+
+worker.handlers.message[0]({ type: 'focus-exe/command:repo' }, { id: 'worker' });
+await new Promise(r => setTimeout(r, 20));
+const repo = worker.calls.opened.at(-1);
+check('repo opens the source repository', repo?.url === 'https://github.com/vallimuthuraja-git/focus-exe', repo?.url);
+worker.handlers.message[0]({ type: 'focus-exe/command:repo' }, { id: 'someone-else' });
+await new Promise(r => setTimeout(r, 20));
+check('repo ignores foreign senders', worker.calls.opened.length === 2, JSON.stringify(worker.calls.opened));
+
+/* an unknown target must not open anything */
+worker.handlers.message[0]({ type: 'focus-exe/command:anything-else' }, { id: 'worker' });
+await new Promise(r => setTimeout(r, 20));
+check('unknown open target opens no tab', worker.calls.opened.length === 2, JSON.stringify(worker.calls.opened));
 
 const failed = results.filter(r => !r.pass).length;
 console.log(`\n${results.length - failed}/${results.length} checks passed`);

@@ -165,6 +165,44 @@ app.click('.deadline-pop-button');
 check('deadline panel opened', app.root().querySelector('.deadline-panel').classList.contains('visible'));
 check('deadline panel clock alive', app.digits('.deadline-panel .deadline-clock').length === 9);
 
+/* 4b. About & support and GitHub live inside the settings panel, in BOTH the
+       expanded and the minimized panel, and there is no longer an info button
+       in the header. Clicking one asks the worker to open a tab. */
+check('no about button left in the header', !app.root().querySelector('.header-actions .about-button'));
+check('header keeps only minimize', app.root().querySelectorAll('.header-actions button').length === 1);
+
+for (const panel of ['expanded-settings-panel', 'mini-settings-panel']) {
+  const scope = app.root().querySelector(`.${panel}`);
+  const aboutRow = scope.querySelector('.setting-link[data-link="about"]');
+  const githubRow = scope.querySelector('.setting-link[data-link="github"]');
+  check(`${panel} has an About & support row`, Boolean(aboutRow));
+  check(`${panel} About row is labelled`, aboutRow?.textContent === 'About & support', aboutRow?.textContent);
+  check(`${panel} has a GitHub row`, githubRow?.textContent === 'GitHub', githubRow?.textContent);
+  /* the accessible name must start with the visible text (WCAG 2.5.3) */
+  for (const [name, row] of [['About', aboutRow], ['GitHub', githubRow]]) {
+    const aria = row?.getAttribute('aria-label') ?? '';
+    check(`${panel} ${name} row is named for a11y`, aria.startsWith(row?.textContent ?? 'x'), aria);
+  }
+  /* leading copy then the "opens a tab" icon, mirroring the toggle rows */
+  check(
+    `${panel} link rows read copy-then-arrow`,
+    aboutRow?.firstElementChild?.className === 'setting-copy' &&
+      aboutRow?.lastElementChild?.className === 'material-icon' &&
+      aboutRow?.querySelector('.setting-copy .setting-icon') !== null,
+    aboutRow?.innerHTML
+  );
+}
+
+const sentBefore = app.sent.length;
+app.root().querySelector('.expanded-settings-panel .setting-link[data-link="about"]')
+  .dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+check('About row asks the worker for the page', app.sent.at(-1)?.type === 'focus-exe/command:about', JSON.stringify(app.sent.at(-1)));
+app.root().querySelector('.mini-settings-panel .setting-link[data-link="github"]')
+  .dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+check('GitHub row asks the worker for the repo', app.sent.at(-1)?.type === 'focus-exe/command:repo', JSON.stringify(app.sent.at(-1)));
+check('link clicks send exactly one message each', app.sent.length === sentBefore + 2, `${app.sent.length - sentBefore}`);
+check('link click closes the panel', !app.root().querySelector('.expanded-settings-panel').classList.contains('visible'));
+
 /* 5. outside click, then service worker commands */
 app.window.document.dispatchEvent(new app.window.MouseEvent('pointerdown', { bubbles: true }));
 await wait(80);
