@@ -36,6 +36,13 @@ export const CONFIG = Object.freeze({
   metronomeVolume: 0.14,
   masterVolume: 0.82,
   scheduleAheadSeconds: 0.12,
+  /**
+   * A hidden tab gets its timers clamped hard (down to once a minute after a
+   * few minutes), so the metronome queues this many seconds of beats on the
+   * audio clock instead of `scheduleAheadSeconds`. The audio clock keeps
+   * running while the tab is in the background, so the beats still land on time.
+   */
+  hiddenScheduleAheadSeconds: 75,
   schedulerMs: 50,
   expandedWidth: 430,
   minimizedWidth: 288,

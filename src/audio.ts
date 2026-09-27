@@ -11,6 +11,12 @@ export interface AudioEngine {
   dispose(): void;
 }
 
+/** One scheduled metronome pulse: two oscillators plus their gain envelopes. */
+interface Beat {
+  sources: OscillatorNode[];
+  gains: GainNode[];
+}
+
 export function createAudioEngine(): AudioEngine {
   let state: AppState | null = null;
   let context: AudioContext | null = null;
@@ -22,6 +28,12 @@ export function createAudioEngine(): AudioEngine {
   let metronomeTimer: number | null = null;
   let nextBeatAt = 0;
   let queue: Promise<void> = Promise.resolve();
+  /** Pulses already queued on the audio clock, so a stop can cancel them. */
+  const pendingBeats = new Set<Beat>();
+  /** Mode the queued pulses were pitched for, so a switch can drop them. */
+  let scheduledMode: Mode | null = null;
+  let watching = false;
+  let disposed = false;
 
   function getContext(): AudioContext | null {
     if (context) {
@@ -29,10 +41,30 @@ export function createAudioEngine(): AudioEngine {
     }
     const Ctor = window.AudioContext ?? window.webkitAudioContext;
     context = Ctor ? new Ctor() : null;
+    if (context && !watching) {
+      watching = true;
+      const ctx = context;
+      // The autoplay policy or a browser suspension can stop the context at any
+      // moment: ask to come back, and re-apply the sounds the moment we may run.
+      ctx.addEventListener('statechange', () => {
+        if (disposed) {
+          return;
+        }
+        const wantsSound = state !== null && state.running && (state.brownNoise || state.metronome);
+        if (ctx.state === 'suspended' && wantsSound) {
+          void ctx.resume().catch(() => undefined);
+        } else if (ctx.state === 'running') {
+          scheduleApply();
+        }
+      });
+    }
     return context;
   }
 
   async function unlock(): Promise<boolean> {
+    if (disposed) {
+      return false;
+    }
     const ctx = getContext();
     if (!ctx) {
       return false;
@@ -191,9 +223,13 @@ export function createAudioEngine(): AudioEngine {
     primary.stop(at + 0.15);
     harmonic.stop(at + 0.1);
 
+    const beat: Beat = { sources: [primary, harmonic], gains: [primaryGain, harmonicGain] };
+    pendingBeats.add(beat);
+
     primary.addEventListener(
       'ended',
       () => {
+        pendingBeats.delete(beat);
         try {
           primary.disconnect();
           harmonic.disconnect();
@@ -208,17 +244,69 @@ export function createAudioEngine(): AudioEngine {
     );
   }
 
+  /**
+   * Drops pulses already queued on the audio clock. A hidden tab queues up to
+   * `hiddenScheduleAheadSeconds` of them, so stopping the metronome (or flipping
+   * the mode) must be able to cancel that backlog — fading first, so a stop is
+   * never an audible click.
+   */
+  function flushPendingBeats(): void {
+    const now = context ? context.currentTime : 0;
+    for (const beat of pendingBeats) {
+      for (const gain of beat.gains) {
+        try {
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+        } catch {
+          // The graph is already torn down; the nodes die with it.
+        }
+      }
+      for (const source of beat.sources) {
+        try {
+          source.stop(now + 0.03);
+        } catch {
+          // Already stopped, or never started.
+        }
+      }
+    }
+    pendingBeats.clear();
+  }
+
+  /**
+   * Re-applies the sounds on the serialized queue. Nothing on this path awaits
+   * the browser's autoplay decision: a `resume()` that never settles used to
+   * wedge the queue, and then no later `sync()` could ever play again.
+   */
+  function scheduleApply(): void {
+    queue = queue.then(apply).catch(() => undefined);
+  }
+
   /** Look-ahead scheduler: pulses are queued on the audio clock, not setTimeout. */
   function pumpScheduler(): void {
-    if (!state?.running || !state.metronome || !compressor || document.hidden) {
+    if (!state?.running || !state.metronome || !compressor) {
       return;
     }
     const ctx = context;
     if (!ctx || ctx.state !== 'running') {
       return;
     }
+    if (scheduledMode !== state.mode) {
+      // Queued pulses of the previous mode would keep ticking into the new one.
+      scheduledMode = state.mode;
+      flushPendingBeats();
+    }
+    // A background tab may wake minutes late; never queue a beat in the past,
+    // or the backlog would all fire at once.
+    if (nextBeatAt < ctx.currentTime) {
+      nextBeatAt = ctx.currentTime + 0.05;
+    }
+    // Hidden tabs get their timers clamped (down to once a minute), so queue a
+    // long window of beats on the audio clock while nobody is looking. The
+    // window is bounded, so this fills up and then idles until the clock catches up.
+    const lookAhead = document.hidden ? CONFIG.hiddenScheduleAheadSeconds : CONFIG.scheduleAheadSeconds;
+    const horizon = ctx.currentTime + lookAhead;
     const interval = 60 / CONFIG.metronomeBpm;
-    const horizon = ctx.currentTime + CONFIG.scheduleAheadSeconds;
     while (nextBeatAt < horizon) {
       scheduleBeat(ctx, nextBeatAt, state.mode);
       nextBeatAt += interval;
@@ -239,6 +327,8 @@ export function createAudioEngine(): AudioEngine {
       window.clearInterval(metronomeTimer);
       metronomeTimer = null;
     }
+    flushPendingBeats();
+    scheduledMode = null;
     nextBeatAt = 0;
   }
 
@@ -247,13 +337,26 @@ export function createAudioEngine(): AudioEngine {
     stopNoise();
   }
 
-  async function apply(): Promise<void> {
-    if (!state?.running || document.hidden || (!state.brownNoise && !state.metronome)) {
+  function apply(): void {
+    if (disposed) {
+      return;
+    }
+    // The tab stays audible in the background: nothing here looks at
+    // document.hidden any more, only at the session the user asked for.
+    if (!state?.running || (!state.brownNoise && !state.metronome)) {
       stopEngine();
       return;
     }
     const ctx = getContext();
-    if (!ctx || !(await unlock()) || !ensureChain(ctx)) {
+    if (!ctx || !ensureChain(ctx)) {
+      return;
+    }
+    if (ctx.state !== 'running') {
+      // Autoplay policy: the context may only run after a gesture in the page.
+      // Never await it — a resume() that settles only on a gesture used to hang
+      // this whole queue, which is why a reopened widget stayed silent. The
+      // statechange watcher above re-applies the sounds once we may run.
+      void ctx.resume().catch(() => undefined);
       return;
     }
 
@@ -273,15 +376,22 @@ export function createAudioEngine(): AudioEngine {
   return {
     unlock,
     sync(next: AppState): void {
+      if (disposed) {
+        return;
+      }
       state = next;
-      queue = queue.then(apply).catch(() => undefined);
+      scheduleApply();
     },
     stop(): void {
       state = null;
       stopEngine();
     },
     dispose(): void {
+      disposed = true;
       stopEngine();
+      pendingBeats.clear();
+      scheduledMode = null;
+      watching = false;
       if (context) {
         void context.close().catch(() => undefined);
         context = null;

@@ -18,7 +18,8 @@ it works on any site, any tab, and is torn down again when you dismiss it.
 
 Features: 25/5 focus and recovery modes, mechanical flip-clock digits, a countdown to the
 deadline, session counter with progress bar, brown noise + metronome toggles, confirmations on
-every state change, minimize/expand, audio that pauses when the tab is hidden, and a desktop
+every state change, minimize/expand, audio that keeps playing while the tab is in the background
+(closing the widget stops it, reopening it brings it back), and a desktop
 notification when a session or break ends.
 
 ## Build
@@ -57,7 +58,7 @@ the Xcode converter, see below).
 
 ## Test
 
-`npm test` builds and then runs three suites (131 checks) in `test/`:
+`npm test` builds and then runs three suites (141 checks) in `test/`:
 
 | Suite | Covers |
 | --- | --- |
@@ -149,3 +150,10 @@ v1 is deliberately small. Likely v2 additions: editable focus/break lengths and 
 settings panel, per-tab vs global session stats, a session history chart, custom sound packs,
 and an optional "auto-open on this site" list for people who want the widget everywhere without
 summoning it.
+
+## Changelog
+
+The full version history lives in [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog format, one
+section per release tag from v1.0.0 on. Every version bump updates it in the same commit; the
+invariant is in `.clinerules/releases.md` and the `/release` skill holds the complete release
+checklist.

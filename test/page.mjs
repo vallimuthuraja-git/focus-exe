@@ -30,7 +30,7 @@ check('no script errors', errors.length === 0, errors.join(' | '));
 check('no external resource requests', document.querySelectorAll('script[src], link[rel="stylesheet"], img').length === 0);
 check('no inline event handlers', !/\son[a-z]+=/i.test(html));
 
-const ids = ['features', 'how', 'install', 'privacy', 'roadmap', 'support', 'faq'];
+const ids = ['features', 'how', 'install', 'privacy', 'roadmap', 'changelog', 'support', 'faq'];
 check('all sections present', ids.every(id => document.getElementById(id)), ids.filter(id => !document.getElementById(id)).join(','));
 const zips = Array.from(document.querySelectorAll('a[download]')).map(a => a.getAttribute('href'));
 const browsers = ['chrome', 'edge', 'brave', 'opera', 'firefox', 'safari'];
@@ -43,6 +43,15 @@ check('no dead internal anchors', Array.from(document.querySelectorAll('a[href^=
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 const repoUrl = String(pkg.repository?.url ?? '').replace(/^git\+/, '').replace(/\.git$/, '');
 const releaseBase = `${repoUrl}/releases/download/v${pkg.version}`;
+
+// The product page carries its own condensed history; a release that forgets
+// to update it fails here instead of shipping a stale page.
+check(
+  'page changelog lists the current release',
+  Boolean(document.getElementById('changelog')) &&
+    document.getElementById('changelog').textContent.includes(`v${pkg.version}`),
+  pkg.version
+);
 
 const chromeHref = document.querySelector('a[download]').getAttribute('href');
 check('download points at the release asset', chromeHref === `${releaseBase}/focus-exe-${pkg.version}-chrome.zip`, chromeHref);

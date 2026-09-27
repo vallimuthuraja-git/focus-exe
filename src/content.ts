@@ -182,6 +182,9 @@ async function mount(): Promise<WidgetSession> {
   };
 
   const onVisibilityChange = (): void => {
+    // The tab being in the background must not silence the session: the audio
+    // engine keeps the noise and the metronome running either way, and the
+    // slower (5s) tick only paces the UI.
     if (document.hidden) {
       audio.sync(state);
       return;
@@ -192,22 +195,32 @@ async function mount(): Promise<WidgetSession> {
     audio.sync(state);
   };
 
+  /** A fresh AudioContext only runs after a gesture in the page — any click counts. */
+  const onPageGesture = (): void => {
+    void audio.unlock();
+  };
+
   const onPageHide = (): void => {
     window.clearTimeout(tick);
     store.flush();
   };
 
   document.addEventListener('pointerdown', onDocumentPointerDown, { passive: true, capture: true });
+  document.addEventListener('pointerdown', onPageGesture, { passive: true, capture: true });
   document.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('pagehide', onPageHide, { once: true });
 
   render(false);
   scheduleTick();
+  // Reopening the widget builds a brand new engine, so the current session has
+  // to be pushed into it: without this sync a reopened panel stayed silent.
+  audio.sync(state);
 
   return {
     dispose(): void {
       window.clearTimeout(tick);
       document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+      document.removeEventListener('pointerdown', onPageGesture, true);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       widget.dispose();
       store.flush();

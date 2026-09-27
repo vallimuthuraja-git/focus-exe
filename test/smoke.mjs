@@ -299,6 +299,136 @@ await wait(100);
 check('running with no endAt does not settle', phantom.text('.session-count') === '5 focus sessions', phantom.text('.session-count'));
 check('running with no endAt stays in focus', phantom.text('.mode-label') === 'Focus session', phantom.text('.mode-label'));
 
+/* 9. regression: a hidden tab used to stop every sound, and a reopened widget
+      never re-applied the audio state, so closing and reopening the extension
+      left silence. The engine is exercised through a fake AudioContext. */
+function installFakeAudio(window) {
+  const contexts = [];
+  const param = () => ({
+    value: 0,
+    setValueAtTime() {},
+    exponentialRampToValueAtTime() {},
+    cancelScheduledValues() {}
+  });
+  const baseNode = () => ({ connect() { return this; }, disconnect() {} });
+
+  class FakeAudioContext {
+    constructor() {
+      this.state = 'suspended';
+      this.currentTime = 0;
+      this.sampleRate = 44100;
+      this.destination = baseNode();
+      this.sources = [];
+      this.listeners = {};
+      contexts.push(this);
+    }
+    addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); }
+    removeEventListener(type, fn) {
+      this.listeners[type] = (this.listeners[type] ?? []).filter(l => l !== fn);
+    }
+    dispatchEvent(event) {
+      for (const fn of [...(this.listeners[event.type] ?? [])]) fn(event);
+      return true;
+    }
+    resume() {
+      if (this.state !== 'running') {
+        this.state = 'running';
+        this.dispatchEvent({ type: 'statechange' });
+      }
+      return Promise.resolve();
+    }
+    close() {
+      this.state = 'closed';
+      this.dispatchEvent({ type: 'statechange' });
+      return Promise.resolve();
+    }
+    createGain() { return { ...baseNode(), gain: param() }; }
+    createDynamicsCompressor() {
+      return {
+        ...baseNode(),
+        gain: param(),
+        threshold: param(),
+        knee: param(),
+        ratio: param(),
+        attack: param(),
+        release: param()
+      };
+    }
+    createBiquadFilter() { return { ...baseNode(), type: '', frequency: param(), Q: param() }; }
+    createBuffer(_channels, frames) { return { getChannelData: () => new Float32Array(frames) }; }
+    track(node, kind) {
+      node.kind = kind;
+      node.started = false;
+      node.stopped = false;
+      node.start = () => { node.started = true; };
+      node.stop = () => { node.stopped = true; };
+      node.addEventListener = () => {};
+      this.sources.push(node);
+      return node;
+    }
+    createBufferSource() { return this.track({ ...baseNode(), buffer: null, loop: false }, 'noise'); }
+    createOscillator() { return this.track({ ...baseNode(), type: 'sine', frequency: param() }, 'beat'); }
+  }
+
+  window.AudioContext = FakeAudioContext;
+  let hidden = false;
+  Object.defineProperty(window.document, 'hidden', { configurable: true, get: () => hidden });
+  return {
+    contexts,
+    latest: () => contexts.at(-1),
+    setHidden: value => { hidden = value; }
+  };
+}
+
+const sound = boot({
+  seed: { mode: 'focus', running: true, endAt: Date.now() + 600_000, remaining: null, sessions: 0, brownNoise: true, metronome: true, minimized: false }
+});
+const fakeAudio = installFakeAudio(sound.window);
+sound.window.eval(bundle);
+await wait(200);
+
+const firstContext = fakeAudio.latest();
+check('audio context created for the running session', Boolean(firstContext), String(firstContext));
+check(
+  'brown noise starts with the session',
+  Boolean(firstContext?.sources.some(s => s.kind === 'noise' && s.started && !s.stopped)),
+  JSON.stringify(firstContext?.sources.map(s => [s.kind, s.started, s.stopped]))
+);
+const beatsWhileVisible = firstContext.sources.filter(s => s.kind === 'beat').length;
+
+fakeAudio.setHidden(true);
+sound.window.document.dispatchEvent(new sound.window.Event('visibilitychange'));
+await wait(200);
+const beatsWhileHidden = firstContext.sources.filter(s => s.kind === 'beat').length;
+check(
+  'brown noise keeps playing while the tab is hidden',
+  firstContext.sources.filter(s => s.kind === 'noise').every(s => !s.stopped),
+  JSON.stringify(firstContext.sources.filter(s => s.kind === 'noise').map(s => s.stopped))
+);
+check(
+  'metronome keeps queueing beats while the tab is hidden',
+  beatsWhileHidden > beatsWhileVisible,
+  `${beatsWhileVisible} -> ${beatsWhileHidden}`
+);
+
+/* closing the widget still tears the sound down */
+sound.deliver({ type: 'focus-exe/command:toggle' });
+await wait(80);
+check('closing the widget closes the audio context', firstContext.state === 'closed', firstContext.state);
+
+/* ...and reopening it must bring the sound back by itself */
+sound.deliver({ type: 'focus-exe/command:show' });
+await wait(300);
+const secondContext = fakeAudio.latest();
+check('reopening mounts the widget again', Boolean(sound.host()));
+check('reopening builds a fresh audio context', secondContext !== firstContext);
+check(
+  'sound comes back after reopening',
+  Boolean(secondContext?.sources.some(s => s.kind === 'noise' && s.started && !s.stopped)),
+  JSON.stringify(secondContext?.sources.map(s => [s.kind, s.started, s.stopped]))
+);
+check('reopen produced no runtime errors', sound.errors.length === 0, sound.errors.join(' | '));
+
 check('no page leakage', app.window.document.querySelectorAll('#app *').length === 0);
 check('no page globals leaked', !('focusExeStateV1' in app.window) && !app.window.__FOCUS_EXE__);
 check('no runtime errors', [app, late, live, hostile, idle, phantom].every(ctx => ctx.errors.length === 0), [app, late, live, hostile, idle, phantom].flatMap(c => c.errors).join(' | '));
