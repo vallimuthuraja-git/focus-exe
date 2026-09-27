@@ -33,6 +33,8 @@ version bump updates this file in the same commit that lands the bump — the in
   panel is no longer silent.
 - `package-lock.json`'s two `version` fields are kept in sync with `package.json` again (they
   had drifted to 1.0.0).
+- The product page's *How it works* copy no longer claims the audio pauses when the tab is
+  hidden.
 
 ### Tests
 
