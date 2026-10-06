@@ -30,9 +30,12 @@ function sendToTab(tabId: number, type: string): Promise<boolean> {
 }
 
 /**
- * The widget lives only while the user wants it: the tab is granted on the
- * click/shortcut gesture, the script is injected on demand and torn down by a
- * second summon. No page keeps running our code once it is dismissed.
+ * The widget is declared as a content script that auto-runs in every top-level
+ * page (see manifest `content_scripts`), so it is already mounted everywhere.
+ * The toolbar click and shortcut therefore only need to toggle the active tab;
+ * `sendToTab` carries that. The `executeScript` fallback covers pages where
+ * declarative injection is blocked (e.g. the Chrome Web Store), where the
+ * user gesture grants temporary `activeTab` access just in time.
  */
 async function summon(tabId: number): Promise<void> {
   // A live listener means the script is already in this page: just toggle it.

@@ -204,6 +204,17 @@ check('link clicks send exactly one message each', app.sent.length === sentBefor
 check('link click closes the panel', !app.root().querySelector('.expanded-settings-panel').classList.contains('visible'));
 
 /* 5. outside click, then service worker commands */
+
+/* Expanded widget + outside pointerdown must auto-minimize (auto-close on blur). */
+const expandedState = app.store.focusExeStateV1?.minimized;
+app.click('.minimize-button');
+await wait(80);
+check('expanded widget has minimized class removed', !app.root().classList.contains('minimized'));
+app.window.document.dispatchEvent(new app.window.MouseEvent('pointerdown', { bubbles: true }));
+await wait(80);
+check('outside pointerdown auto-minimizes expanded widget', app.root().classList.contains('minimized'));
+
+/* Already minimized widget stays minimized on any outside pointerdown. */
 app.window.document.dispatchEvent(new app.window.MouseEvent('pointerdown', { bubbles: true }));
 await wait(80);
 check('already minimized stays', app.root().classList.contains('minimized'));

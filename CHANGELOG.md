@@ -9,6 +9,22 @@ version bump updates this file in the same commit that lands the bump — the in
 
 ## [Unreleased]
 
+### Changed
+
+- The widget is now present in every tab and window of every browser, not just the one you summon
+  it on: the content script is declared in the manifest (`content_scripts` with `<all_urls>`)
+  instead of being injected on demand, so the widget is present on any site. The strict on-demand
+  `activeTab` model is relaxed — no blanket `<all_urls>` *permission* is requested, only the
+  content-script match pattern. The toolbar button and `Alt+Shift+F` still toggle the widget on the
+  current page; the `scripting` + `activeTab` fallback remains for pages where declarative injection
+  is blocked (e.g. the Chrome Web Store).
+
+### Tests
+
+- 144/144 checks: `test/run.mjs` now verifies the built `manifest.json` declares the all-URL
+  content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three
+  suites (page 31, worker 20, smoke 90).
+
 ## [1.1.2] - 2026-09-27
 
 ### Added

@@ -4,6 +4,7 @@ export interface Manifest {
   version: string;
   description: string;
   permissions: string[];
+  host_permissions?: string[];
   background: { service_worker?: string; scripts?: string[] };
   action: { default_title: string; default_icon: Record<string, string> };
   commands: Record<string, { suggested_key: { default: string }; description: string }>;
@@ -12,6 +13,13 @@ export interface Manifest {
   browser_specific_settings?: {
     gecko: { id: string; strict_min_version: string };
   };
+  content_scripts?: Array<{
+    matches: string[];
+    js?: string[];
+    css?: string[];
+    run_at?: string;
+    all_frames?: boolean;
+  }>;
 }
 
 export interface Target {
@@ -43,9 +51,21 @@ function build(options: Options): Manifest {
     name: options.name,
     version: options.version,
     description: options.description,
-    // activeTab + scripting: the page is only reachable after the user summons
-    // the widget, so no blanket host permission is ever requested.
+    // The content script's `content_scripts.matches: ['<all_urls>']` below is
+    // what declares the widget in every top-level page — it needs no host
+    // permission of its own. `host_permissions` is not requested: the widget
+    // is declaratively present, and `scripting` + `activeTab` remain as a
+    // fallback for pages where declarative injection is blocked (e.g. the
+    // Chrome Web Store), where a user gesture grants temporary access.
     permissions: ['storage', 'notifications', 'scripting', 'activeTab'],
+    content_scripts: [
+      {
+        matches: ['<all_urls>'],
+        js: ['content.js'],
+        run_at: 'document_idle',
+        all_frames: false
+      }
+    ],
     background:
       options.engine === 'chromium'
         ? { service_worker: 'background.js' }

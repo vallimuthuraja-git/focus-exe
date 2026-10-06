@@ -94,6 +94,7 @@ async function mount(): Promise<WidgetSession> {
   });
 
   shadow.appendChild(widget.root);
+  widget.setWidgetHost(host);
   widget.setMinimized(state.minimized);
 
   function render(animate: boolean): void {

@@ -1,17 +1,14 @@
 # Focus Exe
 
 A Manifest V3 browser extension: a Pomodoro focus timer with a deadline countdown, brown noise
-and a 60 BPM neuro-metronome. It runs on any site, on demand, and is torn down when you
-dismiss it.
-
-It is **not** pinned to one site. The widget is summoned on the page you are looking at, and
-it works on any site, any tab, and is torn down again when you dismiss it.
+and a 60 BPM neuro-metronome. The widget is present in every tab and window of every browser, on
+any site, and stays in sync through shared extension storage.
 
 ## Using it
 
 | Action | Result |
 | --- | --- |
-| Click the extension icon | Show the widget on the current page (press again to hide) |
+| Click the extension icon | Toggle the widget on the current page (show / hide) |
 | `Alt+Shift+F` | Same, without leaving the keyboard (rebindable in your browser's shortcut settings) |
 | Open settings | Audio toggles, plus *About & support* and *GitHub* (both open in a new tab) |
 | Click anywhere on the page | Widget collapses to its compact bar |
@@ -58,7 +55,8 @@ the Xcode converter, see below).
 
 ## Test
 
-`npm test` builds and then runs three suites (141 checks) in `test/`:
+`npm test` builds, then `test/run.mjs` verifies the build artifacts and that the manifest declares
+the all-URL content script (3 checks), and runs three suites (144 checks) in `test/`:
 
 | Suite | Covers |
 | --- | --- |
@@ -116,7 +114,7 @@ src/widget.css    widget stylesheet
 src/settings.ts   settings panel: audio toggles + About/GitHub rows
 src/settings.css  settings panel stylesheet
 src/ui.ts         shared shadow-DOM builders (icon, button, lookup)
-src/content.ts    injected on demand: mount, unmount, tick loop, state machine
+src/content.ts    content script: mounted on every top-level page, tick loop, state machine
 src/background.ts service worker: inject on summon, show completion notifications
 src/manifest.ts   per-browser MV3 manifests
 page/index.html   public product page (bundled into every build)
@@ -126,9 +124,13 @@ test/             jsdom suites: page, worker, widget smoke
 
 ## Security notes
 
-- **Least privilege.** Permissions are only `activeTab`, `scripting`, `storage`, `notifications`.
-  There is no `host_permissions`, no blanket `<all_urls>`, and no access to any page until you
-  summon the widget yourself.
+- **Least privilege.** Permissions are `storage`, `notifications`, `scripting` and `activeTab` —
+  no `host_permissions` and no blanket `<all_urls>` permission. The content script is declared
+  declaratively (`content_scripts.matches: ['<all_urls>']`) so the widget is present in every tab;
+  `scripting` + `activeTab` remain as a fallback for pages where declarative injection is blocked.
+  The widget runs in a
+  closed shadow root in the extension's isolated world and never touches page JavaScript, so a
+  site can neither read nor drive it.
 - **No remote code.** Everything ships in the package: no `eval`, no `new Function`, no CDN, no
   network calls at all, and no `web_accessible_resources` exposed to pages.
 - **Isolated by construction.** The UI lives in a closed shadow root, runs in the extension's

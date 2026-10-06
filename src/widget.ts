@@ -18,17 +18,29 @@ export interface WidgetHooks {
   onMinimize(minimized: boolean): void;
 }
 
+/** The element that bounds the widget's UI (its shadow-root host). The
+ *  outside-click listener uses it to tell a pointer target *inside* the
+ *  widget from one on the page background. */
+
 export interface Widget {
   root: HTMLElement;
   render(state: AppState, remaining: number, animate: boolean): void;
   setMinimized(minimized: boolean): void;
   closeOverlays(): void;
+  setWidgetHost(host: HTMLElement): void;
   dispose(): void;
 }
 
+/** The shadow-root host that bounds the widget's UI. Set by the host page
+ *  so the outside-click listener can tell a hit *inside* the widget from a
+ *  hit on the page background. */
+
 export const WIDGET_STYLES = `${widgetStyles}\n${settingsStyles}`;
 
-/** Static shell only: no interpolation, so no page or user data ever reaches innerHTML. */
+let widgetHost: HTMLElement | null = null;
+
+/** Register the element that bounds the widget's UI (the shadow-root host).
+ *  The outside-click listener uses it to detect clicks on the page background. */
 const MARKUP = `
     <div class="shell">
         <div class="header">
@@ -359,10 +371,8 @@ export function createWidget(hooks: WidgetHooks): Widget {
       hooks.onSetting('metronome', input.checked);
     });
   }
-  function syncInputs(inputs: HTMLInputElement[], value: boolean): void {
-    for (const input of inputs) {
-      input.checked = value;
-    }
+  function setWidgetHost(host: HTMLElement): void {
+    widgetHost = host;
   }
 
   const onPointerLeave = (): void => {
@@ -393,6 +403,34 @@ export function createWidget(hooks: WidgetHooks): Widget {
     hooks.onGesture();
   };
   root.addEventListener('pointerdown', onWidgetPointerDown, { passive: true });
+
+  /**
+   * Auto-close on blur.
+   *
+   * The widget lives inside a closed shadow root, so a click that lands on the
+   * page background does not naturally "see" the widget. We listen on `document`
+   * so we never miss a hit. If the pointer's composed path does not contain the
+   * widget host, every floating panel is closed and, when the widget is not
+   * already minimized, it is minimized (width/icon/aria return to the default
+   * state) and the minimized flag is persisted — the same behaviour as the
+   * original script's outside-click detection.
+   */
+  const onDocumentPointerDown = (event: PointerEvent): void => {
+    if (widgetHost?.contains(event.target as Node)) {
+      return;
+    }
+    closeOverlays();
+    if (!root.classList.contains('minimized')) {
+      setMinimized(true);
+    }
+  };
+  function syncInputs(inputs: HTMLInputElement[], value: boolean): void {
+    for (const input of inputs) {
+      input.checked = value;
+    }
+  }
+
+  document.addEventListener('pointerdown', onDocumentPointerDown, { passive: true });
 
   function labelButton(node: HTMLElement, label: string, isPop: boolean): void {
     const text = node.querySelector('.button-label');
@@ -473,10 +511,12 @@ export function createWidget(hooks: WidgetHooks): Widget {
     render,
     setMinimized,
     closeOverlays,
+    setWidgetHost,
     dispose(): void {
       root.removeEventListener('pointerleave', onPointerLeave);
       root.removeEventListener('keydown', onKeyDown);
       root.removeEventListener('pointerdown', onWidgetPointerDown);
+      document.removeEventListener('pointerdown', onDocumentPointerDown);
     }
   };
 }
