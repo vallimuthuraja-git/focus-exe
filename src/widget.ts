@@ -144,7 +144,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
   need(root, '.deadline-icon-slot').appendChild(icon('event', 'card-icon'));
   need(root, '.deadline-panel-icon-slot').appendChild(icon('event', 'card-icon'));
   need(root, '.mode-icon-slot').appendChild(icon('book', 'mode-icon'));
-  need(root, '.session-icon-slot').appendChild(icon('complete', 'session-icon'));
+  need(root, '.session-icon-slot').appendChild(icon('bullseye', 'session-icon'));
   need(root, '.deadline-clock-slot').appendChild(createDeadlineClock());
   need(root, '.deadline-panel-clock-slot').appendChild(createDeadlineClock());
   need(root, '.focus-clock-slot').appendChild(createFocusClock());

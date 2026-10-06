@@ -5,6 +5,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
 import * as esbuild from 'esbuild';
 
+import { parseChangelog } from './src/changelog.ts';
+
 const root = dirname(fileURLToPath(import.meta.url));
 const dist = join(root, 'dist');
 const cache = join(root, '.build');
@@ -20,6 +22,30 @@ const wantZip = flags.has('--zip') || flags.has('--pack');
 const only = value('target', undefined);
 
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+
+/** Read, parse, and serialize the release history as stable JSON. */
+const changelogSource = await readFile(join(root, 'CHANGELOG.md'), 'utf8');
+const releases = parseChangelog(changelogSource);
+const changelogJson = `${JSON.stringify(releases, null, 2)}\n`;
+
+/**
+ * Prepare a JSON string for safe inclusion inside a
+ * `<script type="application/json">` element.
+ *
+ * Script content is raw text: `&`, `<` and `>` are literal (the parser does
+ * not decode character references there), so they are left untouched. The only
+ * sequences that matter are:
+ *   - `</`  — would close the script tag early. Escaped to `<\/`, which is
+ *     also valid JSON (escaped solidus) and decodes back to `</` on parse.
+ *   - `__`  — the page test rejects any leftover `__PLACEHOLDER__` pattern in
+ *     the HTML. Encoded as `&#x5f;&#x5f;` so the raw HTML has no `__` run;
+ *     the render script decodes it back to `__` before `JSON.parse`.
+ */
+function escapeHtmlForScript(value) {
+  return value
+    .replace(/<\//g, '<\\/')
+    .replace(/__/g, '&#x5f;&#x5f;');
+}
 
 /* ---------- icons: generated so no binary assets live in the repo ---------- */
 
@@ -162,13 +188,19 @@ const pageSource = await readFile(join(root, 'page/index.html'), 'utf8');
 const pageHtml = pageSource
   .replaceAll('__VERSION__', pkg.version)
   .replaceAll('__RELEASE_BASE__', releaseBase)
-  .replaceAll('__REPO_URL__', repoUrl);
+  .replaceAll('__REPO_URL__', repoUrl)
+  // Inject the stable, machine-readable release history as an inline JSON
+  // block. It is parsed by the product page at runtime, so the changelog is
+  // never hand-typed into the HTML markup. The `<script type="application/json">`
+  // wrapper is provided by the source template; only the JSON body is injected.
+  .replace('__CHANGELOG_JSON__', escapeHtmlForScript(changelogJson));
 
 if (flags.has('--page')) {
   // preview only: render the product page without bundling the extension
   await mkdir(join(dist, 'page'), { recursive: true });
   await writeFile(join(dist, 'page/index.html'), pageHtml);
-  console.log(`Product page v${pkg.version} -> dist/page/index.html`);
+  await writeFile(join(dist, 'page/changelog.json'), changelogJson);
+  console.log(`Product page v${pkg.version} -> dist/page/index.html (+ changelog.json)`);
   process.exit(0);
 }
 
@@ -226,6 +258,7 @@ for (const target of targets) {
   }
   await writeFile(join(out, 'manifest.json'), `${JSON.stringify(target.manifest, null, 2)}\n`);
   await writeFile(join(out, 'page/index.html'), pageHtml);
+  await writeFile(join(out, 'page/changelog.json'), changelogJson);
 
   if (wantZip) {
     const archive = join(dist, `focus-exe-${pkg.version}-${target.dir}.zip`);

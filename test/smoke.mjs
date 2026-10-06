@@ -17,7 +17,7 @@ const check = (name, pass, extra = '') => {
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 /** Boots a fresh page, injects the built content script like the worker would. */
-function boot({ url = 'https://anthropic-partners.skilljar.com/en/course', seed = null } = {}) {
+function boot({ url = 'https://anthropic-partners.skilljar.com/en/course', seed = null, sharedStore = null } = {}) {
   const errors = [];
   const vc = new VirtualConsole();
   vc.on('jsdomError', e => errors.push(`jsdom: ${e.message}`));
@@ -31,7 +31,14 @@ function boot({ url = 'https://anthropic-partners.skilljar.com/en/course', seed 
   });
 
   const { window } = dom;
-  const store = seed ? { focusExeStateV1: seed } : {};
+  // Two boots can share one chrome.storage.local object to emulate two tabs
+  // looking at the same extension storage; otherwise each boot gets an
+  // isolated store. A seed fills a missing record without clobbering state an
+  // earlier tab already wrote.
+  const store = sharedStore ?? {};
+  if (seed && !('focusExeStateV1' in store)) {
+    store.focusExeStateV1 = seed;
+  }
   const sent = [];
   const listeners = [];
 
@@ -439,6 +446,36 @@ check(
   JSON.stringify(secondContext?.sources.map(s => [s.kind, s.started, s.stopped]))
 );
 check('reopen produced no runtime errors', sound.errors.length === 0, sound.errors.join(' | '));
+
+/* 10. only one mounted tab may emit audio: a second tab running the same
+      session stays silent while the first holds the shared audio lease. */
+const sharedTabs = {};
+const first = boot({
+  url: 'https://anthropic-partners.skilljar.com/en/first',
+  seed: { mode: 'focus', running: true, endAt: Date.now() + 600_000, remaining: null, sessions: 0, brownNoise: true, metronome: true, minimized: false },
+  sharedStore: sharedTabs
+});
+const firstAudio = installFakeAudio(first.window);
+first.window.eval(bundle);
+await wait(250);
+first.window.document.dispatchEvent(new first.window.MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+await wait(250);
+
+const second = boot({
+  url: 'https://example.com/second',
+  sharedStore: sharedTabs
+});
+const secondAudio = installFakeAudio(second.window);
+second.window.eval(bundle);
+await wait(250);
+second.window.document.dispatchEvent(new second.window.MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+await wait(250);
+
+const firstNoise = firstAudio.latest()?.sources.some(s => s.kind === 'noise' && s.started && !s.stopped) ?? false;
+const secondNoise = secondAudio.latest()?.sources.some(s => s.kind === 'noise' && s.started && !s.stopped) ?? false;
+check('first running tab keeps the shared audio lease', firstNoise, `first=${firstNoise} second=${secondNoise}`);
+check('second mounted tab stays silent while the lease is held', !secondNoise, `first=${firstNoise} second=${secondNoise}`);
+check('single-audio tabs produce no runtime errors', first.errors.length === 0 && second.errors.length === 0, [...first.errors, ...second.errors].join(' | '));
 
 check('no page leakage', app.window.document.querySelectorAll('#app *').length === 0);
 check('no page globals leaked', !('focusExeStateV1' in app.window) && !app.window.__FOCUS_EXE__);

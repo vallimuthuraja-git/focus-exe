@@ -45,7 +45,7 @@ const LINKS: readonly LinkSpec[] = [
   {
     target: 'about',
     label: 'About & support',
-    title: 'About & support: the Focus Exe product page',
+    title: 'About & support: the Focus Exe source code on GitHub',
     iconName: 'info'
   },
   { target: 'github', label: 'GitHub', title: 'GitHub: the Focus Exe source code', iconName: 'github' }

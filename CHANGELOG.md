@@ -7,6 +7,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 version bump updates this file in the same commit that lands the bump — the invariant lives in
 `.clinerules/releases.md`, and the `/release` skill holds the full checklist.
 
+## [Unreleased]
+
+## [1.3.0] - 2026-10-07
+
+### Added
+
+- Bullseye target icon for the focus session counter row
+- Single-audio cross-tab lease: brown noise and the metronome are audible from exactly one tab no matter how many are open
+- `src/leadership.ts` — shared `chrome.storage.local` lease with heartbeat renewal and TTL expiry
+- `test/smoke.mjs` — shared-store boot helper and 10-check shared-audio smoke suite
+
+### Changed
+
+- *About & support* now opens the source repository on GitHub instead of the product page
+- `build.mjs` generates a stable `page/changelog.json` from `CHANGELOG.md`; the product page renders the condensed release history at runtime from this JSON instead of hand-typed HTML
+- `src/changelog.ts` — Keep a Changelog parser emitting a stable JSON schema
+
+### Fixed
+
+- Reopening the widget pushes the running session into the audio engine only when this tab holds the shared lease, so a reopened panel is no longer silent but also never layers noise beds or metronome streams with other open tabs
+
+### Tests
+
+- 146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 95).
+
 ## [1.2.0] - 2026-10-06
 
 ### Added
@@ -209,9 +234,10 @@ extension.
   (*Pay with UPI*, with the id shown beside it for copying), an unconfigured PayPal shows a
   setup note instead of failing silently, and `og:`/`twitter:` share metadata was added.
 
+[1.3.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.2...v1.2.0
 
-[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.3.0...HEAD
 [1.1.2]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.0.1...v1.1.0

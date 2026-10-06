@@ -15,7 +15,7 @@ any site, and stays in sync through shared extension storage.
 
 Features: 25/5 focus and recovery modes, mechanical flip-clock digits, a countdown to the
 deadline, session counter with progress bar, brown noise + metronome toggles, confirmations on
-every state change, minimize/expand, audio that keeps playing while the tab is in the background
+every state change, minimize/expand, audio from exactly one tab no matter how many are open
 (closing the widget stops it, reopening it brings it back), and a desktop
 notification when a session or break ends.
 
@@ -56,7 +56,7 @@ the Xcode converter, see below).
 ## Test
 
 `npm test` builds, then `test/run.mjs` verifies the build artifacts and that the manifest declares
-the all-URL content script (3 checks), and runs three suites (144 checks) in `test/`:
+the all-URL content script (3 checks), and runs three suites (146 checks) in `test/`:
 
 | Suite | Covers |
 | --- | --- |
@@ -108,6 +108,7 @@ src/config.ts     constants, limits, icon paths, message contract
 src/browser.ts    promise wrappers over the extension APIs (callback flavour = portable)
 src/state.ts      state shape, sanitising, persistence (chrome.storage.local)
 src/audio.ts      Web Audio: brown noise + look-ahead metronome scheduler
+src/leadership.ts single-audio cross-tab lease (one audible tab, silent followers)
 src/clock.ts      mechanical split-flap digit reels
 src/widget.ts     shadow-DOM shell, cards, controls, confirmations
 src/widget.css    widget stylesheet

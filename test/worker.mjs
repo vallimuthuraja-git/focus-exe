@@ -111,10 +111,11 @@ check('notification icon resolves', made[0]?.options.iconUrl.endsWith('icons/ico
 check('notification text is fixed copy', made.every(n => ['Focus session complete', 'Break complete'].includes(n.options.title) && n.options.message.length < 60));
 check('notification ids are unique', new Set(worker.calls.notifications.map(n => n.id)).size === worker.calls.notifications.length);
 
-/* the settings links ask the worker to open the product page or the repo */
+/* both settings links now open the GitHub repository */
+const expectedAbout = 'https://github.com/vallimuthuraja-git/focus-exe';
 worker.handlers.message[0]({ type: 'focus-exe/command:about' }, { id: 'worker' });
 await new Promise(r => setTimeout(r, 20));
-check('about opens the product page', worker.calls.opened.length === 1 && worker.calls.opened[0].url.endsWith('page/index.html'), JSON.stringify(worker.calls.opened));
+check('about opens the source repository on GitHub', worker.calls.opened.length === 1 && worker.calls.opened[0].url === expectedAbout, JSON.stringify(worker.calls.opened));
 worker.handlers.message[0]({ type: 'focus-exe/command:about' }, { id: 'someone-else' });
 await new Promise(r => setTimeout(r, 20));
 check('about ignores foreign senders', worker.calls.opened.length === 1);

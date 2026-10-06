@@ -1,4 +1,5 @@
 import { createAudioEngine } from './audio';
+import { createAudioLeadership } from './leadership';
 import { sendMessage } from './browser';
 import { COMMAND, COMPLETE, HOST_ID } from './config';
 import {
@@ -71,6 +72,7 @@ async function mount(): Promise<WidgetSession> {
 
   let state: AppState = reconcile(await loadState()).state;
   const audio = createAudioEngine();
+  const leadership = createAudioLeadership();
   const store = createStore(() => state);
   const host = mountHost();
   const shadow = host.attachShadow({ mode: 'closed' });
@@ -106,7 +108,25 @@ async function mount(): Promise<WidgetSession> {
   function commit(): void {
     store.save();
     render(false);
-    audio.sync(state);
+    void syncAudio(state);
+  }
+
+  /**
+   * Route the session into the engine only when this tab owns shared audio.
+   * Every tab renders the same timer, but followers stop their local graph so
+   * N open tabs never layer N noise beds or N metronome streams.
+   */
+  async function syncAudio(next: AppState): Promise<void> {
+    if (!next.running || (!next.brownNoise && !next.metronome)) {
+      audio.stop();
+      await leadership.standDown();
+      return;
+    }
+    if (await leadership.ensure()) {
+      audio.sync(next);
+    } else {
+      audio.stop();
+    }
   }
 
   function settleIfExpired(): void {
@@ -116,7 +136,7 @@ async function mount(): Promise<WidgetSession> {
     }
     state = result.state;
     store.flush();
-    audio.sync(state);
+    void syncAudio(state);
     render(false);
     void sendMessage({ type: COMPLETE, mode: result.completedMode });
   }
@@ -183,17 +203,16 @@ async function mount(): Promise<WidgetSession> {
   };
 
   const onVisibilityChange = (): void => {
-    // The tab being in the background must not silence the session: the audio
-    // engine keeps the noise and the metronome running either way, and the
-    // slower (5s) tick only paces the UI.
+    // A hidden tab must keep participating in shared audio: only the lease
+    // holder stays audible, and the slower (5s) tick only paces the UI.
     if (document.hidden) {
-      audio.sync(state);
+      void syncAudio(state);
       return;
     }
     settleIfExpired();
     render(false);
     scheduleTick();
-    audio.sync(state);
+    void syncAudio(state);
   };
 
   /** A fresh AudioContext only runs after a gesture in the page — any click counts. */
@@ -204,6 +223,8 @@ async function mount(): Promise<WidgetSession> {
   const onPageHide = (): void => {
     window.clearTimeout(tick);
     store.flush();
+    audio.stop();
+    void leadership.standDown();
   };
 
   document.addEventListener('pointerdown', onDocumentPointerDown, { passive: true, capture: true });
@@ -215,7 +236,9 @@ async function mount(): Promise<WidgetSession> {
   scheduleTick();
   // Reopening the widget builds a brand new engine, so the current session has
   // to be pushed into it: without this sync a reopened panel stayed silent.
-  audio.sync(state);
+  // Only the lease holder emits; every other tab renders the same timer in
+  // silence.
+  void syncAudio(state);
 
   return {
     dispose(): void {
@@ -226,6 +249,7 @@ async function mount(): Promise<WidgetSession> {
       widget.dispose();
       store.flush();
       audio.dispose();
+      leadership.dispose();
       host.remove();
     }
   };
