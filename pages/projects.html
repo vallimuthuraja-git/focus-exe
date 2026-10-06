@@ -1,0 +1,163 @@
+<!doctype html>
+<!--
+  Focus Exe — Projects
+
+  Release history and feature deep-dives. The changelog is rendered
+  at runtime from the inline JSON block (injected by build.mjs from
+  CHANGELOG.md), so it is never hand-typed into the markup.
+
+  Placeholders replaced at build time by build.mjs:
+    __VERSION__      -> package version
+    __REPO_URL__     -> <repo>
+    release history  -> injected as inline JSON (from CHANGELOG.md)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects — Focus Exe</title>
+<meta name="description" content="Focus Exe release history, feature deep-dives and the open roadmap. Every release ships with a changelog entry.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Projects — Focus Exe">
+<meta property="og:description" content="Release history and feature deep-dives for Focus Exe.">
+<meta property="og:url" content="https://vallimuthuraja-git.github.io/focus-exe/projects.html">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%230d1117'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%2378d6ff' stroke-width='2'/%3E%3Cpath d='M12 6.6v5.8l3.4 2' fill='none' stroke='%2378d6ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#78d6ff" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5.4l3.2 2" stroke-linecap="round" />
+      </svg>
+      <span class="brand-text">Focus&nbsp;Exe</span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="btn primary small header-cta" href="index.html#install">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Get the extension
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================ INTRO ============================ -->
+<section aria-labelledby="projects-title">
+  <div class="wrap">
+    <span class="eyebrow">Projects</span>
+    <h2 id="projects-title">One extension, built in the open</h2>
+    <p class="lead">Focus Exe is the whole project: a Manifest V3 extension, a
+    six-browser build pipeline, and a public changelog. Every release ships with
+    its entry, and the full detail lives in the repository's
+    <a href="__REPO_URL__/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>.</p>
+
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <h3>Six builds</h3>
+        <p class="muted">Chrome, Edge, Brave, Opera, Firefox and Safari from a single TypeScript codebase, bundled with esbuild.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <h3>146 checks</h3>
+        <p class="muted">Type-check, manifest validation, page audit, service-worker suite and a jsdom smoke suite run on every push.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+        <h3>MIT licensed</h3>
+        <p class="muted">Free forever, no ads, no upsells. Read, fork and modify it however you like.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FEATURE DEEP-DIVES ============================ -->
+<section id="feature-deepdives" aria-labelledby="deepdives-title">
+  <div class="wrap">
+    <span class="eyebrow">Feature deep-dives</span>
+    <h2 id="deepdives-title">How the pieces fit together</h2>
+    <div class="grid g2" style="margin-top:22px">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Timestamp-based timer</h3>
+        <p class="muted">The session is stored as an end timestamp, not a ticking counter. Close the
+        tab, come back an hour later, and the state reconciles without drift &mdash; a finished
+        session settles itself and updates the counter without a stale notification.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 0 0 14.14M15.54 8.46a5 5 0 0 0 0 7.07"/></svg></div>
+        <h3>Generated audio</h3>
+        <p class="muted">Brown noise is synthesized with the Web Audio API and the 60&nbsp;BPM
+        metronome is scheduled on the audio clock with look-ahead, so it never drifts, jitters,
+        or needs an audio file. A shared lease keeps exactly one tab audible across windows.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Closed shadow root</h3>
+        <p class="muted">The widget mounts into a closed shadow root in the extension's isolated
+        world. The host page gets no handle, so it can't read, restyle, or script the widget
+        &mdash; and the widget never touches page JavaScript.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Sanitised storage</h3>
+        <p class="muted">Everything read back from <code>chrome.storage.local</code> is re-validated
+        and clamped, so a tampered or corrupted record can't break or hang the widget. State lives
+        in extension storage, never the page's <code>localStorage</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CHANGELOG ============================ -->
+<section id="changelog" aria-labelledby="changelog-title">
+  <div class="wrap">
+    <span class="eyebrow">Changelog</span>
+    <h2 id="changelog-title">Every release, in the open</h2>
+    <p class="muted" style="margin-top:14px;max-width:820px">A condensed copy of the repository's
+    <a href="__REPO_URL__/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> &mdash;
+    every release ships with its entry, and the full detail lives there.</p>
+    <div id="releases" style="margin-top:22px"></div>
+
+    <!-- JSON release history (generated at build time by build.mjs) -->
+    <script id="changelog-data" type="application/json">__CHANGELOG_JSON__</script>
+  </div>
+</section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>Focus Exe v__VERSION__ &middot; MIT licensed</span>
+    <div class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+      <a href="__REPO_URL__" rel="noopener">Source code</a>
+    </div>
+    <span class="spacer"></span>
+    <a class="github-icon" href="__REPO_URL__" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.37-.519-1.011-.519-1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

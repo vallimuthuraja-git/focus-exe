@@ -112,6 +112,38 @@ header.site {
   color: var(--text);
 }
 .brand:hover { text-decoration: none; }
+.brand:hover .brand-text { color: var(--accent); }
+
+.github-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  transition: transform .14s ease, color .14s ease, background-color .14s ease;
+}
+.github-icon svg { width: 22px; height: 22px; }
+.github-icon:hover {
+  text-decoration: none;
+  color: var(--text);
+  background: #232a32;
+  transform: translateY(-2px);
+}
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.footer-nav a {
+  color: var(--muted);
+  font-size: 14px;
+  transition: color .14s ease;
+}
+.footer-nav a:hover {
+  color: var(--text);
+}
 .brand svg { width: 26px; height: 26px; }
 nav.links { display: flex; gap: 10px; margin-left: auto; font-size: 14px; }
 nav.links a { color: var(--muted); padding: 8px 5px; }
@@ -355,7 +387,7 @@ footer .row .spacer { margin-left: auto; }
         <circle cx="12" cy="12" r="9" />
         <path d="M12 7v5.4l3.2 2" stroke-linecap="round" />
       </svg>
-      Focus&nbsp;Exe
+      <span class="brand-text">Focus&nbsp;Exe</span>
     </a>
     <nav class="links" aria-label="Sections">
       <a href="#features">Features</a>
@@ -837,11 +869,18 @@ footer .row .spacer { margin-left: auto; }
 <footer class="site">
   <div class="wrap row">
     <span>Focus Exe v__VERSION__ &middot; MIT licensed</span>
+    <div class="footer-nav">
+      <a href="__REPO_URL__" rel="noopener">Source code</a>
+      <a href="__REPO_URL__/releases" rel="noopener">Releases</a>
+      <a href="__REPO_URL__/issues" rel="noopener">Report an issue</a>
+      <a href="#support">Support</a>
+    </div>
     <span class="spacer"></span>
-    <a href="__REPO_URL__" rel="noopener">Source code</a>
-    <a href="__REPO_URL__/releases" rel="noopener">Releases</a>
-    <a href="__REPO_URL__/issues" rel="noopener">Report an issue</a>
-    <a href="#support">Support</a>
+    <a class="github-icon" href="__REPO_URL__" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.247.37-.519 1.011-.519 1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
   </div>
 </footer>
 

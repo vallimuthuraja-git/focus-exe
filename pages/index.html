@@ -1,0 +1,348 @@
+<!doctype html>
+<!--
+  Focus Exe — Home
+
+  Multi-page public site (deployed to GitHub Pages).
+  Styles live in assets/css/main.css, interactivity in assets/js/main.js.
+
+  Placeholders replaced at build time by build.mjs:
+    __VERSION__      -> package version
+    __RELEASE_BASE__ -> <repo>/releases/download/v<version>
+    __REPO_URL__     -> <repo>
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Exe — focus timer, deadline countdown, brown noise &amp; metronome</title>
+<meta name="description" content="Focus Exe is a Manifest V3 browser extension with a 25/5 focus timer, deadline countdown, brown noise and a 60 BPM metronome. Summoned on any site, on demand. No accounts, no tracking, no data collection.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Focus Exe — focus timer, deadline countdown, brown noise &amp; metronome">
+<meta property="og:description" content="A Manifest V3 browser extension with a 25/5 focus timer, deadline countdown, brown noise and a 60 BPM neuro-metronome. Summoned on any site, on demand.">
+<meta property="og:url" content="https://vallimuthuraja-git.github.io/focus-exe/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%230d1117'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%2378d6ff' stroke-width='2'/%3E%3Cpath d='M12 6.6v5.8l3.4 2' fill='none' stroke='%2378d6ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#78d6ff" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5.4l3.2 2" stroke-linecap="round" />
+      </svg>
+      <span class="brand-text">Focus&nbsp;Exe</span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="btn primary small header-cta" href="#install">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Get the extension
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero-wrap" aria-labelledby="hero-title">
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">Manifest V3 &middot; v__VERSION__ &middot; zero data collection</span>
+      <h1 id="hero-title">Focus Exe</h1>
+      <p class="lead">A focus timer that appears when you summon it and disappears when you
+      don't. 25/5 focus and recovery cycles, a countdown to your deadline, brown noise and a
+      60&nbsp;BPM neuro-metronome &mdash; on any site, in any tab.</p>
+      <div class="cta">
+        <a class="btn primary" href="__RELEASE_BASE__/focus-exe-__VERSION__-chrome.zip" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download for Chrome
+        </a>
+        <a class="btn ghost" href="#install">All browsers &amp; install steps</a>
+      </div>
+      <div class="meta">
+        <span class="tag">Chrome 102+</span>
+        <span class="tag">Edge</span>
+        <span class="tag">Brave</span>
+        <span class="tag">Opera</span>
+        <span class="tag">Firefox 115+</span>
+        <span class="tag">Safari 16+</span>
+        <span class="tag">~33&nbsp;KB download</span>
+      </div>
+    </div>
+
+    <div class="mock">
+      <span class="glow" aria-hidden="true"></span>
+      <svg viewBox="0 0 360 230" role="img" aria-label="The Focus Exe widget: a deadline countdown above a 25 minute focus timer with a progress bar">
+        <defs>
+          <linearGradient id="hd" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#30353b" /><stop offset="1" stop-color="#171a1e" />
+          </linearGradient>
+          <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0a0c0e" /><stop offset=".5" stop-color="#252b31" /><stop offset="1" stop-color="#08090b" />
+          </linearGradient>
+          <clipPath id="panel"><rect x="8" y="8" width="344" height="214" rx="13" /></clipPath>
+        </defs>
+
+        <rect x="8" y="8" width="344" height="214" rx="13" fill="#181b1e" stroke="rgba(255,255,255,.16)" />
+        <g clip-path="url(#panel)">
+          <rect x="8" y="8" width="344" height="44" fill="url(#hd)" />
+          <rect x="8" y="51" width="344" height="1" fill="rgba(255,255,255,.12)" />
+          <rect x="8" y="214" width="344" height="8" fill="rgba(255,255,255,.1)" />
+          <rect x="8" y="214" width="132" height="8" fill="#53c783" />
+        </g>
+
+        <rect x="22" y="21" width="18" height="18" rx="5" fill="#78d6ff" opacity=".9" />
+        <rect x="48" y="25" width="98" height="9" rx="4.5" fill="#eef2f5" opacity=".82" />
+        <rect x="288" y="21" width="18" height="18" rx="5" fill="#2a2f35" stroke="rgba(255,255,255,.14)" />
+        <circle cx="297" cy="30" r="3.2" fill="none" stroke="#9aa6b2" stroke-width="1.4" />
+        <rect x="314" y="21" width="18" height="18" rx="5" fill="#2a2f35" stroke="rgba(255,255,255,.14)" />
+        <rect x="319" y="29" width="8" height="2" rx="1" fill="#9aa6b2" />
+
+        <rect x="20" y="60" width="320" height="52" rx="9" fill="#25292e" stroke="rgba(255,255,255,.08)" />
+        <rect x="34" y="69" width="72" height="6" rx="3" fill="#aeb7c0" opacity=".6" />
+        <g font-family="Consolas, monospace" font-size="10" fill="#f4f7f8" text-anchor="middle" dominant-baseline="central">
+          <rect x="34" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="40.5" y="92">0</text>
+          <rect x="50" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="56.5" y="92">9</text>
+          <rect x="66" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" opacity=".3" /><text x="72.5" y="92" opacity=".45">6</text>
+          <rect x="83" y="86" width="11" height="11" rx="3" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.1)" />
+          <rect x="102" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="108.5" y="92">2</text>
+          <rect x="118" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="124.5" y="92">3</text>
+          <rect x="135" y="86" width="11" height="11" rx="3" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.1)" />
+          <rect x="154" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="160.5" y="92">4</text>
+          <rect x="170" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="176.5" y="92">8</text>
+          <rect x="187" y="86" width="11" height="11" rx="3" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.1)" />
+          <rect x="206" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="212.5" y="92">1</text>
+          <rect x="222" y="82" width="13" height="19" rx="4" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="228.5" y="92">2</text>
+          <rect x="239" y="86" width="11" height="11" rx="3" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.1)" />
+        </g>
+        <rect x="266" y="82" width="58" height="6" rx="3" fill="#aeb7c0" opacity=".32" />
+        <rect x="266" y="93" width="40" height="6" rx="3" fill="#aeb7c0" opacity=".2" />
+
+        <rect x="20" y="120" width="320" height="66" rx="9" fill="#25292e" stroke="rgba(255,255,255,.08)" />
+        <rect x="34" y="129" width="62" height="6" rx="3" fill="#53c783" opacity=".7" />
+        <g font-family="Consolas, monospace" font-size="17" fill="#f4f7f8" text-anchor="middle" dominant-baseline="central">
+          <rect x="34" y="144" width="22" height="32" rx="6" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="45" y="161">2</text>
+          <rect x="60" y="144" width="22" height="32" rx="6" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="71" y="161">5</text>
+          <text x="94" y="161" fill="#78d6ff">:</text>
+          <rect x="104" y="144" width="22" height="32" rx="6" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="115" y="161">0</text>
+          <rect x="130" y="144" width="22" height="32" rx="6" fill="url(#dg)" stroke="rgba(255,255,255,.16)" /><text x="141" y="161">0</text>
+          <rect x="158" y="152" width="13" height="16" rx="4" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.1)" />
+        </g>
+        <rect x="196" y="146" width="46" height="9" rx="4.5" fill="#2f9d67" />
+        <rect x="196" y="160" width="64" height="9" rx="4.5" fill="#30353b" stroke="rgba(255,255,255,.14)" />
+        <rect x="266" y="146" width="58" height="9" rx="4.5" fill="#2a2f35" stroke="rgba(255,255,255,.14)" />
+        <rect x="266" y="160" width="46" height="9" rx="4.5" fill="#2a2f35" stroke="rgba(255,255,255,.14)" />
+        <rect x="20" y="194" width="120" height="6" rx="3" fill="#aeb7c0" opacity=".28" />
+        <rect x="266" y="194" width="58" height="6" rx="3" fill="#53c783" opacity=".45" />
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRINCIPLES ============================ -->
+<section aria-labelledby="principles-title">
+  <div class="wrap">
+    <h2 id="principles-title" class="sr-only">Core principles</h2>
+    <div class="grid g4">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>No accounts</h3>
+        <p class="muted">Nothing to sign up for. Your settings live in the extension's own storage.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div>
+        <h3>No tracking</h3>
+        <p class="muted">No analytics, no telemetry, no network calls at all &mdash; you can read the source.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3>Any website</h3>
+        <p class="muted">Summon it on the page you're studying. It holds no standing access to any site.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3>Works offline</h3>
+        <p class="muted">Timers and audio are generated locally, so nothing depends on a server.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FEATURES ============================ -->
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <span class="eyebrow">Features</span>
+    <h2 id="features-title">Everything a study session needs, nothing it doesn't</h2>
+    <p class="lead">No runtime dependencies, no framework, no build-time magic &mdash; one small
+    widget that stays out of the way.</p>
+
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>25 / 5 focus cycles</h3>
+        <p class="muted">Focus for 25 minutes, a 5-minute recovery break, then it flips back
+        automatically and counts the session. Pause, reset or switch early whenever you like.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <h3>Deadline countdown</h3>
+        <p class="muted">A days / hours / minutes / seconds clock to your exam or deadline,
+        pinned in the widget or popped out in the compact bar.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 0 0 14.14M15.54 8.46a5 5 0 0 0 0 7.07"/></svg></div>
+        <h3>Brown noise</h3>
+        <p class="muted">A soft, low-frequency noise bed generated with the Web Audio API &mdash;
+        no looping audio file, no bandwidth, no external request.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>60 BPM metronome</h3>
+        <p class="muted">A pulsing tick that lines up with a calm breathing rate, scheduled on
+        the audio clock so it never drifts or jitters.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <h3>Confirm before you break focus</h3>
+        <p class="muted">Starting, pausing, resetting and switching modes all ask first, in the
+        widget or in the compact bar, so a stray click can't cost you a session.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
+        <h3>Compact mode</h3>
+        <p class="muted">Minimise to a slim bar that keeps the clock, and it collapses by itself
+        the moment you click anywhere else on the page.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ HOW IT WORKS ============================ -->
+<section id="how" aria-labelledby="how-title">
+  <div class="wrap">
+    <span class="eyebrow">How it works</span>
+    <h2 id="how-title">Three steps, then it gets out of the way</h2>
+    <div class="grid g3 steps" style="margin-top:26px">
+      <div class="card step">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3>Summon it</h3>
+        <p class="muted">Click the extension icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>.
+        The widget is injected into the current tab only.</p>
+      </div>
+      <div class="card step">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <h3>Run a session</h3>
+        <p class="muted">Confirm the start, put your phone down, and let the flip clock and the
+        metronome carry the session. The audio keeps playing even with the tab in the
+        background.</p>
+      </div>
+      <div class="card step">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
+        <h3>Dismiss it</h3>
+        <p class="muted">Press the shortcut again or click the icon. The widget is removed from
+        the page, audio stops, and only your settings are kept.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ INSTALL ============================ -->
+<section id="install" aria-labelledby="install-title">
+  <div class="wrap">
+    <span class="eyebrow">Download &amp; install</span>
+    <h2 id="install-title">Pick your browser</h2>
+    <p class="lead">One codebase, six builds. Each download is the unsigned package &mdash; loading
+    it takes a minute and needs no developer account.</p>
+
+    <div class="grid g2 install-grid">
+      <div class="card install-card">
+        <h3>Chrome, Edge, Brave, Opera</h3>
+        <p class="muted">Chromium builds are identical. Unzip it, then load the folder unpacked.</p>
+<pre><b>chrome://extensions</b> → Developer mode → Load unpacked
+  → select the unzipped <b>chrome</b> folder</pre>
+        <div class="dl">
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-chrome.zip" download>Chrome .zip</a>
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-edge.zip" download>Edge .zip</a>
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-brave.zip" download>Brave .zip</a>
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-opera.zip" download>Opera .zip</a>
+        </div>
+      </div>
+
+      <div class="card install-card">
+        <h3>Firefox</h3>
+        <p class="muted">Loads as a temporary add-on, which is perfect for trying it out. Sign the
+        zip with <code>web-ext</code> to install it permanently.</p>
+<pre><b>about:debugging#/runtime/this-firefox</b>
+  → Load Temporary Add-on → pick <b>manifest.json</b></pre>
+        <div class="dl">
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-firefox.zip" download>Firefox .zip</a>
+        </div>
+      </div>
+
+      <div class="card install-card">
+        <h3>Safari</h3>
+        <p class="muted">macOS only. Xcode converts the build into an app extension you can enable
+        in Safari's settings.</p>
+<pre>xcrun safari-web-extension-converter dist/safari \\
+  --macos-only --no-open</pre>
+        <div class="dl">
+          <a class="btn small" href="__RELEASE_BASE__/focus-exe-__VERSION__-safari.zip" download>Safari .zip</a>
+        </div>
+      </div>
+
+      <div class="card install-card">
+        <h3>Everyone else</h3>
+        <p class="muted">Chromium 102+, Firefox 115+ and Safari 16+ are the minimums. The build
+        pipeline is in the repository if you want to compile it yourself.</p>
+<pre>git clone __REPO_URL__.git
+  &amp;&amp; cd focus-exe &amp;&amp; npm install &amp;&amp; npm run pack</pre>
+        <div class="dl">
+          <a class="btn small ghost" href="__REPO_URL__" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.37-.519-1.011-.519-1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            Source on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:22px;font-size:14px">Signed store listings are on the roadmap;
+    until then these self-hosted packages are the supported way to install it. Keep the shortcut
+    handy &mdash; you can rebind <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> in your browser's extension
+    shortcut settings.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>Focus Exe v__VERSION__ &middot; MIT licensed</span>
+    <div class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+      <a href="__REPO_URL__" rel="noopener">Source code</a>
+    </div>
+    <span class="spacer"></span>
+    <a class="github-icon" href="__REPO_URL__" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.37-.519-1.011-.519-1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -28,7 +28,7 @@ npm run dev          # unminified with inline sourcemaps
 npm run pack         # also writes a signed-ready .zip per browser
 npm run verify       # type-check + packaged build
 npm test             # build, then run the suites in test/
-npm run page         # product page only -> dist/page/index.html
+npm run page         # multi-page site only -> dist/site/
 node build.mjs --target=firefox        # one browser only
 ```
 
@@ -79,27 +79,38 @@ BPM, volumes, widget widths and roll animation. The extension version follows `p
 
 ## Product page
 
-`page/index.html` is the public product page: hero, features, install steps per browser, privacy,
-roadmap, support and FAQ. It is a single self-contained file — no frameworks, no external fonts,
-no images, no network requests — and it is written into every build at `dist/<browser>/page/`,
-where the widget's *About & support* settings row opens it
-(`chrome-extension://<id>/page/index.html`).
+The public site is a **multi-page** static site in `pages/`: Home (`index.html`),
+About (`about.html`), Projects (`projects.html`) and Contact (`contact.html`),
+sharing one stylesheet (`pages/assets/css/main.css`) and one script
+(`pages/assets/js/main.js`). It is mobile-first, uses Lucide-style inline SVG
+icons throughout, and is deployed to GitHub Pages.
 
-Build-time placeholders are substituted by `build.mjs`:
+`page/index.html` is a separate, **single self-contained** file — no frameworks,
+no external fonts, no images, no network requests — that is bundled into every
+build at `dist/<browser>/page/` so it works offline inside the extension
+(`chrome-extension://<id>/page/index.html`). The test suite enforces that it
+stays self-contained (no external resources), which is why the public site lives
+in `pages/` and the extension page stays in `page/`.
+
+Build-time placeholders are substituted by `build.mjs` in both:
 
 | Placeholder | Replaced with |
 | --- | --- |
 | `__VERSION__` | `package.json` version |
 | `__RELEASE_BASE__` | `<repo>/releases/download/v<version>` |
 | `__REPO_URL__` | `package.json` repository URL |
+| release history | `CHANGELOG.md` parsed to inline JSON (Projects page) |
 
-The donation and support links are the one thing you must fill in: edit the `SUPPORT` object in
-the `<script>` at the bottom of `page/index.html` (Buy Me a Coffee handle, GitHub username, UPI
-id, PayPal link) and run `npm run build`. Until a handle is set, the button keeps pointing at the
-platform's home page and shows a small setup note, so the page can never 404.
+The donation and support links are the one thing you must fill in: edit the
+`SUPPORT` object in `pages/assets/js/main.js` (Buy Me a Coffee handle, GitHub
+username, UPI id, PayPal link) and run `npm run build`. Until a handle is set,
+the button keeps pointing at the platform's home page and shows a small setup
+note, so the page can never 404.
 
-Deploying the page: it is a static file, so GitHub Pages, Netlify, Cloudflare Pages or any static
-host works. `npm run page` writes a rendered copy to `dist/page/index.html` for that purpose.
+Deploying the site: `npm run page` renders the multi-page site to `dist/site/`
+(with its `assets/`), ready for GitHub Pages, Netlify, Cloudflare Pages or any
+static host. CI publishes `dist/site/` to the `gh-pages` branch on every push
+to `main`.
 
 ## Layout
 
@@ -118,8 +129,11 @@ src/ui.ts         shared shadow-DOM builders (icon, button, lookup)
 src/content.ts    content script: mounted on every top-level page, tick loop, state machine
 src/background.ts service worker: inject on summon, show completion notifications
 src/manifest.ts   per-browser MV3 manifests
-page/index.html   public product page (bundled into every build)
-build.mjs         esbuild bundling, icon generation, page render, packaging
+page/index.html   self-contained product page (bundled into every build)
+pages/            multi-page public site (Home, About, Projects, Contact)
+pages/assets/css  shared stylesheet (main.css)
+pages/assets/js   shared interactivity (main.js)
+build.mjs         esbuild bundling, icon generation, page + site render, packaging
 test/             jsdom suites: page, worker, widget smoke
 ```
 

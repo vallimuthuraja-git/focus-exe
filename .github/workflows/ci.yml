@@ -40,8 +40,8 @@ jobs:
           if-no-files-found: error
 
   publish-page:
-    # The product page is a static file; redeploy it whenever page/index.html
-    # changes on main so the live site never drifts from the extension bundle.
+    # The public site is a multi-page static site; redeploy it whenever
+    # pages/ changes on main so the live site never drifts from the source.
     needs: check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -64,11 +64,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # gh-pages is an orphan branch holding only the rendered page
+          # gh-pages is an orphan branch holding only the rendered site
           git checkout --orphan gh-pages
           git rm -rf --cached . -q
-          cp dist/page/index.html index.html
+          cp -r dist/site/. .
           touch .nojekyll
-          git add index.html .nojekyll
-          git commit -m "Deploy product page from ${GITHUB_SHA}"
+          git add -A
+          git commit -m "Deploy site from ${GITHUB_SHA}"
           git push --force origin gh-pages
