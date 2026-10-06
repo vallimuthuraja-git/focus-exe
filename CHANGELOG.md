@@ -7,23 +7,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 version bump updates this file in the same commit that lands the bump — the invariant lives in
 `.clinerules/releases.md`, and the `/release` skill holds the full checklist.
 
-## [Unreleased]
+## [1.2.0] - 2026-10-06
+
+### Added
+
+- Auto-close on blur: the widget now minimizes back to its default state whenever the user
+  clicks anywhere outside the application's UI boundary while it is expanded. The expanded
+  width, minimize/expand icon, and accessibility attributes all return to the default state,
+  and the minimized flag is persisted. Clicking the dedicated "Expand" button restores the
+  expanded state.
+- The pre-released widget-on-every-tab change shipped: the content script is declared in the
+  manifest with `content_scripts` and `matches: ['<all_urls>']`, so the widget is present in
+  every top-level tab without a blanket host permission. The toolbar toggle and
+  `Alt+Shift+F` shortcut still toggle it on the current page only.
 
 ### Changed
 
-- The widget is now present in every tab and window of every browser, not just the one you summon
-  it on: the content script is declared in the manifest (`content_scripts` with `<all_urls>`)
-  instead of being injected on demand, so the widget is present on any site. The strict on-demand
-  `activeTab` model is relaxed — no blanket `<all_urls>` *permission* is requested, only the
-  content-script match pattern. The toolbar button and `Alt+Shift+F` still toggle the widget on the
-  current page; the `scripting` + `activeTab` fallback remains for pages where declarative injection
-  is blocked (e.g. the Chrome Web Store).
+- The content-script match pattern (`content_scripts` with `<all_urls>`) ships as the new
+  default: the widget is present in every top-level tab of every browser, not just the one
+  the user summoned it on. The strict on-demand `activeTab` model is relaxed — no blanket
+  `<all_urls>` *permission* is requested, only the content-script match pattern.
+- The audio toggle state (`brownNoise`/`metronome`) is synced on every render, so the
+  minimized and expanded views stay in sync with stored settings.
+
+### Fixed
+
+- The `syncInputs` helper was referenced in `render()` but missing from the widget module;
+  it is now defined so the audio toggle inputs stay in sync on every render.
 
 ### Tests
 
-- 144/144 checks: `test/run.mjs` now verifies the built `manifest.json` declares the all-URL
-  content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three
-  suites (page 31, worker 20, smoke 90).
+- 146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL
+  content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the
+  three suites (page 31, worker 20, smoke 92).
 
 ## [1.1.2] - 2026-09-27
 
@@ -193,7 +209,9 @@ extension.
   (*Pay with UPI*, with the id shown beside it for copying), an unconfigured PayPal shows a
   setup note instead of failing silently, and `og:`/`twitter:` share metadata was added.
 
-[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.2...HEAD
+[1.2.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.2...v1.2.0
+
+[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.2.0...HEAD
 [1.1.2]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.0.1...v1.1.0

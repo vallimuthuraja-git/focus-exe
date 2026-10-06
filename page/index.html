@@ -687,6 +687,14 @@ footer .row .spacer { margin-left: auto; }
     every release ships with its entry, and the full detail lives there.</p>
     <div style="margin-top:22px;display:flex;flex-direction:column;gap:16px;max-width:820px">
       <div class="card">
+        <h3>v1.2.0 <span class="muted" style="font-size:13px;font-weight:400">&middot; 2026-10-06</span></h3>
+        <ul class="ticks" style="margin-top:8px">
+          <li>Auto-close on blur: the widget minimizes back to its default state when the user clicks anywhere outside the application's UI boundary while it is expanded; clicking the "Expand" button restores the expanded state</li>
+          <li>The widget is present in every top-level tab and window of every browser via a declarative content-script match; the toolbar toggle and <code>Alt+Shift+F</code> shortcut still toggle it on the current page</li>
+          <li>This changelog section, plus the release rule and <code>/release</code> skill in the repository</li>
+        </ul>
+      </div>
+      <div class="card">
         <h3>v1.1.2 <span class="muted" style="font-size:13px;font-weight:400">&middot; 2026-09-27</span></h3>
         <ul class="ticks" style="margin-top:8px">
           <li>Brown noise and the 60 BPM metronome keep playing while the tab is in the background; closing the widget stops them, reopening brings them back</li>
