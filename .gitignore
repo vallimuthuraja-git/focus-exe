@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.build/
+*.zip
+*.tsbuildinfo
+.DS_Store
+
+# Local reference copy of the original userscript — deliberately not in the repo
+# (the platform binding was stripped in a738e1e); keep it out of every commit.
+src/Original.js

@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      # `npm test` builds first (pretest), so this also covers the build and
+      # the rendered product page. The suites run against the built bundles in
+      # dist/, which is what actually ships.
+      - name: Test
+        run: npm test
+
+      - name: Package
+        run: npm run pack
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-exe-packages
+          path: dist/*.zip
+          if-no-files-found: error
+
+  publish-page:
+    # The public site is a multi-page static site; redeploy it whenever
+    # pages/ changes on main so the live site never drifts from the source.
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      # Without this the default GITHUB_TOKEN is read-only and the push to
+      # gh-pages fails with "Permission to ... denied to github-actions[bot]".
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run page
+
+      - name: Publish to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # gh-pages is an orphan branch holding only the rendered site
+          git checkout --orphan gh-pages
+          git rm -rf --cached . -q
+          cp -r dist/site/. .
+          touch .nojekyll
+          git add -A
+          git commit -m "Deploy site from ${GITHUB_SHA}"
+          git push --force origin gh-pages

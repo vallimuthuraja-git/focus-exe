@@ -1,0 +1,320 @@
+<!doctype html>
+<!--
+  Focus Exe — Projects
+
+  Release history and feature deep-dives. The changelog is rendered
+  at runtime from the inline JSON block (injected by build.mjs from
+  CHANGELOG.md), so it is never hand-typed into the markup.
+
+  Placeholders replaced at build time by build.mjs:
+    1.3.0      -> package version
+    https://github.com/vallimuthuraja-git/focus-exe     -> <repo>
+    release history  -> injected as inline JSON (from CHANGELOG.md)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects — Focus Exe</title>
+<meta name="description" content="Focus Exe release history, feature deep-dives and the open roadmap. Every release ships with a changelog entry.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Projects — Focus Exe">
+<meta property="og:description" content="Release history and feature deep-dives for Focus Exe.">
+<meta property="og:url" content="https://vallimuthuraja-git.github.io/focus-exe/projects.html">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%230d1117'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%2378d6ff' stroke-width='2'/%3E%3Cpath d='M12 6.6v5.8l3.4 2' fill='none' stroke='%2378d6ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#78d6ff" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5.4l3.2 2" stroke-linecap="round" />
+      </svg>
+      <span class="brand-text">Focus&nbsp;Exe</span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="btn primary small header-cta" href="index.html#install">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Get the extension
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================ INTRO ============================ -->
+<section aria-labelledby="projects-title">
+  <div class="wrap">
+    <span class="eyebrow">Projects</span>
+    <h2 id="projects-title">One extension, built in the open</h2>
+    <p class="lead">Focus Exe is the whole project: a Manifest V3 extension, a
+    six-browser build pipeline, and a public changelog. Every release ships with
+    its entry, and the full detail lives in the repository's
+    <a href="https://github.com/vallimuthuraja-git/focus-exe/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>.</p>
+
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <h3>Six builds</h3>
+        <p class="muted">Chrome, Edge, Brave, Opera, Firefox and Safari from a single TypeScript codebase, bundled with esbuild.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <h3>146 checks</h3>
+        <p class="muted">Type-check, manifest validation, page audit, service-worker suite and a jsdom smoke suite run on every push.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+        <h3>MIT licensed</h3>
+        <p class="muted">Free forever, no ads, no upsells. Read, fork and modify it however you like.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FEATURE DEEP-DIVES ============================ -->
+<section id="feature-deepdives" aria-labelledby="deepdives-title">
+  <div class="wrap">
+    <span class="eyebrow">Feature deep-dives</span>
+    <h2 id="deepdives-title">How the pieces fit together</h2>
+    <div class="grid g2" style="margin-top:22px">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Timestamp-based timer</h3>
+        <p class="muted">The session is stored as an end timestamp, not a ticking counter. Close the
+        tab, come back an hour later, and the state reconciles without drift &mdash; a finished
+        session settles itself and updates the counter without a stale notification.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 0 0 14.14M15.54 8.46a5 5 0 0 0 0 7.07"/></svg></div>
+        <h3>Generated audio</h3>
+        <p class="muted">Brown noise is synthesized with the Web Audio API and the 60&nbsp;BPM
+        metronome is scheduled on the audio clock with look-ahead, so it never drifts, jitters,
+        or needs an audio file. A shared lease keeps exactly one tab audible across windows.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Closed shadow root</h3>
+        <p class="muted">The widget mounts into a closed shadow root in the extension's isolated
+        world. The host page gets no handle, so it can't read, restyle, or script the widget
+        &mdash; and the widget never touches page JavaScript.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Sanitised storage</h3>
+        <p class="muted">Everything read back from <code>chrome.storage.local</code> is re-validated
+        and clamped, so a tampered or corrupted record can't break or hang the widget. State lives
+        in extension storage, never the page's <code>localStorage</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CHANGELOG ============================ -->
+<section id="changelog" aria-labelledby="changelog-title">
+  <div class="wrap">
+    <span class="eyebrow">Changelog</span>
+    <h2 id="changelog-title">Every release, in the open</h2>
+    <p class="muted" style="margin-top:14px;max-width:820px">A condensed copy of the repository's
+    <a href="https://github.com/vallimuthuraja-git/focus-exe/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> &mdash;
+    every release ships with its entry, and the full detail lives there.</p>
+    <div id="releases" style="margin-top:22px"></div>
+
+    <!-- JSON release history (generated at build time by build.mjs) -->
+    <script id="changelog-data" type="application/json">{
+  "project": "focus-exe",
+  "format": "keep-a-changelog/v1",
+  "latestVersion": "1.3.0",
+  "releases": [
+    {
+      "version": "1.3.0",
+      "date": "2026-10-07",
+      "changes": {
+        "Added": [
+          "Bullseye target icon for the focus session counter row",
+          "Single-audio cross-tab lease: brown noise and the metronome are audible from exactly one tab no matter how many are open",
+          "`src/leadership.ts` — shared `chrome.storage.local` lease with heartbeat renewal and TTL expiry",
+          "`test/smoke.mjs` — shared-store boot helper and 10-check shared-audio smoke suite"
+        ],
+        "Changed": [
+          "*About & support* now opens the source repository on GitHub instead of the product page",
+          "`build.mjs` generates a stable `page/changelog.json` from `CHANGELOG.md`; the product page renders the condensed release history at runtime from this JSON instead of hand-typed HTML",
+          "`src/changelog.ts` — Keep a Changelog parser emitting a stable JSON schema"
+        ],
+        "Fixed": [
+          "Reopening the widget pushes the running session into the audio engine only when this tab holds the shared lease, so a reopened panel is no longer silent but also never layers noise beds or metronome streams with other open tabs"
+        ],
+        "Security": [],
+        "Tests": [
+          "146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 95)."
+        ]
+      }
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-10-06",
+      "changes": {
+        "Added": [
+          "Auto-close on blur: the widget now minimizes back to its default state whenever the user clicks anywhere outside the application's UI boundary while it is expanded. The expanded width, minimize/expand icon, and accessibility attributes all return to the default state, and the minimized flag is persisted. Clicking the dedicated \"Expand\" button restores the expanded state.",
+          "The pre-released widget-on-every-tab change shipped: the content script is declared in the manifest with `content_scripts` and `matches: ['<all_urls>']`, so the widget is present in every top-level tab without a blanket host permission. The toolbar toggle and `Alt+Shift+F` shortcut still toggle it on the current page only."
+        ],
+        "Changed": [
+          "The content-script match pattern (`content_scripts` with `<all_urls>`) ships as the new default: the widget is present in every top-level tab of every browser, not just the one the user summoned it on. The strict on-demand `activeTab` model is relaxed — no blanket `<all_urls>` *permission* is requested, only the content-script match pattern.",
+          "The audio toggle state (`brownNoise`/`metronome`) is synced on every render, so the minimized and expanded views stay in sync with stored settings."
+        ],
+        "Fixed": [
+          "The `syncInputs` helper was referenced in `render()` but missing from the widget module; it is now defined so the audio toggle inputs stay in sync on every render."
+        ],
+        "Security": [],
+        "Tests": [
+          "146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 92)."
+        ]
+      }
+    },
+    {
+      "version": "1.1.2",
+      "date": "2026-09-27",
+      "changes": {
+        "Added": [
+          "A changelog section on the product page (`#changelog`, in the nav): the release history from v1.0.0 condensed into one card per version, linked to the full `CHANGELOG.md` in the repository. `test/page.mjs` fails if the current `package.json` version is missing from it, so a release can no longer ship with a stale page.",
+          "The release process, written down: `.clinerules/releases.md` (the always-on rule — no version bump without a changelog entry in the same commit, no release push without an annotated tag) and the `/release` skill (`.cline/skills/release/SKILL.md`) with the full checklist."
+        ],
+        "Changed": [
+          "Brown noise and the 60 BPM metronome keep playing while the tab is in the background instead of pausing: the metronome queues up to 75 s of beats on the audio clock while the tab is hidden (hidden tabs get their timers clamped to once a minute), never schedules a beat in the past, and fades the queued backlog out on stop or mode switch so the tail is never an audible click. A suspended `AudioContext` resumes and re-applies the sounds the moment the browser allows it, and any page gesture unlocks it.",
+          "Reopening the widget pushes the running session into the brand-new audio engine, so a reopened panel is no longer silent.",
+          "`package-lock.json`'s two `version` fields are kept in sync with `package.json` again (they had drifted to 1.0.0).",
+          "The product page's *How it works* copy no longer claims the audio pauses when the tab is hidden."
+        ],
+        "Fixed": [],
+        "Security": [],
+        "Tests": [
+          "141/141 checks (page 31, worker 20, smoke 90)."
+        ]
+      }
+    },
+    {
+      "version": "1.1.1",
+      "date": "2026-09-27",
+      "changes": {
+        "Added": [],
+        "Changed": [
+          "Release build: version bump plus the six platform zips (chrome, edge, brave, opera, firefox, safari) attached to the GitHub release."
+        ],
+        "Fixed": [
+          "The countdown digits always run their 540 ms mechanical roll again. Two `prefers-reduced-motion` gates added during the userscript conversion — `render()` passing `animate && !reducedMotion`, plus a 1 ms `@media (prefers-reduced-motion: reduce)` override — collapsed the roll to a snap whenever the desktop ran with animations disabled (e.g. GNOME `org.gnome.desktop.interface enable-animations = false`). The roll is now unconditional in both places; reduced-motion still applies to the pop-button, progress-bar and settings-panel transitions. Measured in a real Chrome build before/after: 0.001 s with no visible travel → the full 540 ms roll with the reel moving one digit cell."
+        ],
+        "Security": [],
+        "Tests": []
+      }
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-09-27",
+      "changes": {
+        "Added": [
+          "*About & support* and *GitHub* rows inside the settings panel; each opens in a new tab via the service worker (the widget cannot create tabs itself, and the worker maps the target to a URL it chooses — no URL is ever taken from the message). Both rows are reachable whether the widget is expanded or minimised, because the panel is built once per view."
+        ],
+        "Changed": [
+          "The ⓘ *About Focus Exe* button in the widget header — the one control the compact bar could not reach — moved into the settings panel, joined by the GitHub row. Each link row is a full-width button mirroring the toggle-row layout, so the whole strip is one target.",
+          "The panel is titled *Settings* rather than *Audio settings*, and accessible names begin with the visible row text (WCAG 2.5.3).",
+          "Settings code split out of the widget: `src/ui.ts` (shared shadow-DOM builders), `src/settings.ts` (the panel), `src/settings.css` (panel styles). `src/widget.ts` keeps the shell, cards, controls and confirmations.",
+          "The repo URL is injected from `package.json` by `build.mjs` — a single source of truth with the product page — and the panel is driven by data (TOGGLES/LINKS) rather than a hand-built fragment.",
+          "`ActionKind` loses `'about'` in favour of a dedicated `onOpen(target)` hook."
+        ],
+        "Fixed": [
+          "The page deploy job is granted `contents: write`: the default `GITHUB_TOKEN` is read-only, so the push to `gh-pages` failed with *\"Permission to vallimuthuraja-git/focus-exe.git denied to github-actions[bot]\"*."
+        ],
+        "Security": [],
+        "Tests": [
+          "131/131 checks (page 30, worker 20, smoke 81), up from 110."
+        ]
+      }
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-09-27",
+      "changes": {
+        "Added": [
+          "The test suites are now tracked in the repo: the 109 checks that \"passed\" before lived only in `/tmp` and were never committed — the gap that let this ship. `npm test` builds first (`pretest`) and carries regression cases for all four symptoms, confirmed failing before the fix and passing after.",
+          "`test/page.mjs` no longer hard-codes v1.0.0: the release-asset checks derive `repoUrl` and `version` from `package.json` exactly as `build.mjs` does, and a new check asserts every download sits under the current release.",
+          "MIT `LICENSE` file — `package.json` already declared MIT and the product page footer advertised it, but there was no licence text, so GitHub reported \"no licence\" and the repo was legally all-rights-reserved.",
+          "CI: type-check, test, package, artifact upload, and deploy of the product page to `gh-pages` on `main`.",
+          "Documentation for the test suites, and a note that `DEADLINE` is a build-time constant that counts down to 0 and stays there once it passes."
+        ],
+        "Changed": [],
+        "Fixed": [
+          "The timer no longer reads `0:00` on any re-summon, and Start no longer builds a zero-length session that settles immediately and fires a bogus \"Focus session complete\" notification. `sanitize()` used `Number.isFinite(Number(x))` to detect a stored number, but `Number(null)`, `Number('')` and `Number([])` are all `0`, so the app's own `remaining: null` (written on every settle, reset and start) passed the guard and became `0`. `reconcile()` also settled a stored `running:true/endAt:null` record — exactly the corruption `sanitize()` exists to reject. `finiteOrNull()` now accepts only a real finite number for `endAt` and `remaining`, and `clampNumber` no longer coerces either, so non-numeric input falls back instead of silently becoming `0`."
+        ],
+        "Security": [],
+        "Tests": [
+          "110/110 checks (page 30, worker 17, smoke 63) against the built bundles."
+        ]
+      }
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-09-27",
+      "changes": {
+        "Added": [
+          "Summoned on demand from the toolbar or `Alt+Shift+F` on any site; injected with `activeTab` + `scripting` and torn down on dismiss, so no blanket host permission is requested and the widget has no access until you summon it yourself.",
+          "25/5 focus and recovery modes with persisted state in `chrome.storage.local`, mechanical split-flap digit clocks, deadline countdown, session counter with progress bar, confirmations, minimise/expand, and a desktop notification when a session or break ends (emitted only by a sender-validated service worker that only ever writes fixed copy).",
+          "Web Audio brown noise plus a look-ahead 60 BPM metronome scheduler that pauses with the tab.",
+          "Security posture: closed shadow root, static-only `innerHTML`, sanitised storage reads, no network calls, no remote code, and the timer state kept in extension storage rather than the page's `localStorage`.",
+          "esbuild pipeline emitting chrome, edge, brave, opera, firefox and safari builds with generated icons and per-browser zips.",
+          "A self-contained product page (hero, features, how it works, per-browser install steps, privacy, roadmap, support, FAQ) bundled at `dist/<browser>/page/` in every build, plus a widget info button that asks the service worker to open it in a new tab. No frameworks, fonts, images or network requests: icons are inline SVG, the favicon a data URI, and `&#x5f;&#x5f;VERSION&#x5f;&#x5f;`, `&#x5f;&#x5f;RELEASE_BASE&#x5f;&#x5f;` and `&#x5f;&#x5f;REPO_URL&#x5f;&#x5f;` are substituted at build time (`npm run page` renders a standalone copy to `dist/page/index.html` for static hosting).",
+          "Support links (Buy Me a Coffee, GitHub Sponsors, UPI, PayPal) with a safe fallback: until a handle is configured they point at the platform's home page and show a setup note, so a missing handle can never produce a dead link."
+        ],
+        "Changed": [
+          "Removed every trace of the original site binding: the legacy Skilljar host-id cleanup list, the reference userscript (still in history at `400c7fe`), and platform names in the project description.",
+          "Dropped the unused limit table; notifications now carry unique ids.",
+          "The advertised download size was corrected to ~32 KB, then ~33 KB, to match the rebuilt zips."
+        ],
+        "Fixed": [
+          "Product page layout and touch UI, found in a real-browser audit at 11 viewport widths (320–1920 px): grid items no longer stretch their track (`.grid > * { min-width: 0 }`), `scroll-padding-top` keeps anchored sections clear of the sticky header, the skip link no longer widens the scrollable area, the nav becomes a swipeable strip below 900 px instead of disappearing, tap targets reach 44 px on touch (35 px otherwise), the button lift only applies under `@media (hover: hover)` so it cannot stick after a tap, the support card's UPI/PayPal pair stops wrapping into stacked bars, the UPI button label matches what it does (*Pay with UPI*, with the id shown beside it for copying), an unconfigured PayPal shows a setup note instead of failing silently, and `og:`/`twitter:` share metadata was added."
+        ],
+        "Security": [],
+        "Tests": []
+      }
+    }
+  ]
+}
+</script>
+  </div>
+</section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>Focus Exe v1.3.0 &middot; MIT licensed</span>
+    <div class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+      <a href="https://github.com/vallimuthuraja-git/focus-exe" rel="noopener">Source code</a>
+    </div>
+    <span class="spacer"></span>
+    <a class="github-icon" href="https://github.com/vallimuthuraja-git/focus-exe" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.37-.519-1.011-.519-1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

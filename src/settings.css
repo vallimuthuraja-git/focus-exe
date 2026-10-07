@@ -1,0 +1,196 @@
+/* Settings panel: audio toggles plus the About & support / GitHub rows.
+   Injected into the same closed shadow root as widget.css, so the custom
+   properties declared on .assistant (--text, --muted, --accent) resolve here. */
+
+.settings-panel {
+    position: absolute;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    width: 270px;
+    max-width: calc(100vw - 20px);
+    padding: 10px;
+    color: var(--text);
+    background: linear-gradient(145deg, #292f35, #181c20);
+    border: 1px solid rgba(120, 214, 255, .35);
+    border-radius: 9px;
+    box-shadow:
+        0 16px 34px rgba(0, 0, 0, .52),
+        0 4px 12px rgba(0, 0, 0, .35);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(5px) scale(.985);
+    transform-origin: bottom left;
+    transition:
+        opacity 150ms ease,
+        visibility 150ms ease,
+        transform 170ms cubic-bezier(.2, .8, .25, 1);
+}
+
+.settings-panel.visible {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.expanded-settings-panel {
+    left: calc(100% + 8px);
+    bottom: 10px;
+}
+
+.mini-settings-panel {
+    left: 8px;
+    bottom: calc(100% + 58px);
+}
+
+.settings-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.settings-title .material-icon {
+    color: var(--accent);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 34px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, .035);
+    border: 1px solid rgba(255, 255, 255, .04);
+    border-radius: 7px;
+}
+
+.setting-copy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+}
+
+.setting-label {
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.switch-track {
+    position: absolute;
+    inset: 0;
+    background: #4a5057;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 999px;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease;
+}
+
+.switch-track::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    content: "";
+    background: #d7dde2;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
+    transition:
+        transform 160ms ease,
+        background-color 160ms ease;
+}
+
+.switch input:checked + .switch-track {
+    background: #2e8b61;
+    border-color: #62c893;
+}
+
+.switch input:checked + .switch-track::after {
+    background: #fff;
+    transform: translateX(16px);
+}
+
+.switch input:focus-visible + .switch-track {
+    outline: 2px solid rgba(120, 214, 255, .6);
+    outline-offset: 2px;
+}
+
+/* ---- external links: About & support, GitHub ---- */
+
+.settings-divider {
+    height: 1px;
+    margin: 1px 0;
+    background: rgba(255, 255, 255, .08);
+}
+
+/* A full-row button, so the whole strip is a single, comfortably sized target. */
+.setting-link {
+    width: 100%;
+    font: 600 10px/1.2 "Segoe UI", Roboto, Arial, sans-serif;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+}
+
+.setting-link:hover,
+.setting-link:focus-visible {
+    background: rgba(120, 214, 255, .09);
+    border-color: rgba(120, 214, 255, .3);
+    outline: none;
+}
+
+/* Trailing "opens a tab" affordance, opposite the switch on a toggle row. */
+.setting-link > .material-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    color: var(--muted);
+    opacity: .75;
+}
+
+@media (max-width: 900px) {
+    .expanded-settings-panel {
+        left: 8px;
+        right: auto;
+        bottom: calc(100% + 8px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-panel {
+        transition-duration: 1ms;
+    }
+}
