@@ -92,7 +92,8 @@ async function mount(): Promise<WidgetSession> {
       state = { ...state, minimized };
       store.save();
       render(false);
-    }
+    },
+    onClose: () => unmount()
   });
 
   shadow.appendChild(widget.root);

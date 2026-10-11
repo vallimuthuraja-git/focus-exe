@@ -4,9 +4,12 @@ These invariants apply to **every** version update in this repo, with no excepti
 
 1. **No version bump without a changelog entry, in the same commit.** Any change to the
    `version` field in `package.json` must land together with a new
-   `## [x.y.z] - YYYY-MM-DD` section at the top of `CHANGELOG.md` (Keep a Changelog format:
-   `### Added` / `### Changed` / `### Fixed` / `### Security`, plus `### Tests` when the check
-   counts change). The `## [Unreleased]` section stays empty above it, and the compare-link
+   `## [x.y.z] - YYYY-MM-DD` section at the top of `CHANGELOG.md` (root directory — the
+   single source of truth the product page parses; never duplicated into the README, which
+   only links to it). The entry's standard,
+   scope (user-facing changes only) and subheadings are held separately in the changelog
+   rule — read that rule when you write the entry, not before. The
+   `## [Unreleased]` section stays empty above it, and the compare-link
    definitions at the bottom of the file are extended in the same edit. The release is also
    mirrored into the product page's `#changelog` section in `page/index.html` — `test/page.mjs`
    fails if `v<x.y.z>` is missing there — and the README's check total is refreshed when the

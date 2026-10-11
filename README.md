@@ -25,6 +25,7 @@ notification when a session or break ends.
 npm install
 npm run build        # all browsers into dist/
 npm run dev          # unminified with inline sourcemaps
+npm run hot          # build + extract only the browsers installed on this OS to dist/hot/<browser>/
 npm run pack         # also writes a signed-ready .zip per browser
 npm run verify       # type-check + packaged build
 npm test             # build, then run the suites in test/
@@ -46,6 +47,36 @@ the Xcode converter, see below).
 - **Safari** — `xcrun safari-web-extension-converter dist/safari --macos-only --no-open`,
   then enable the generated app extension in *Safari → Settings → Extensions*.
 
+### Hot-load after every build
+
+`npm run hot` builds, then **detects which browsers are installed on this OS** (Linux,
+Windows or macOS) and extracts only those bundles into **stable, version-less folders**
+under `dist/hot/` — one folder per detected browser, never renamed across releases:
+
+| Detected | Folder | Load it in |
+| --- | --- | --- |
+| Chrome | `dist/hot/chrome` | `chrome://extensions` → *Load unpacked* |
+| Edge | `dist/hot/edge` | same |
+| Brave | `dist/hot/brave` | same |
+| Opera | `dist/hot/opera` | same |
+| Firefox | `dist/hot/firefox/manifest.json` | *Load Temporary Add-on* |
+| Safari (with Xcode converter) | `dist/hot/safari` | Xcode converter, then Safari → Settings → Extensions |
+
+On this machine the build reports what it found, e.g.:
+
+```
+  hot     dist/hot/chrome  (stable path, from chrome)
+  hot     dist/hot/brave   (stable path, from brave)
+```
+
+Browsers that are not installed are skipped, and a stale `dist/hot/<browser>` folder is
+deleted on the next build. Detection only narrows the local hot-load set: `npm run build`
+and `npm run pack` still build **every** target, because a store upload does not depend on
+what is installed locally. Point each browser at its folder once; every later `npm run hot`
+(or `npm test`, which builds with `--hot`) wipes and refills those folders in place, so the
+browser picks up the latest code without re-picking the folder. Full details:
+[docs/hot-loading.md](docs/hot-loading.md).
+
 ### Publish
 
 - Chrome Web Store / Edge Add-ons: upload the zip from `npm run pack`.
@@ -55,8 +86,11 @@ the Xcode converter, see below).
 
 ## Test
 
-`npm test` builds, then `test/run.mjs` verifies the build artifacts and that the manifest declares
-the all-URL content script (3 checks), and runs three suites (146 checks) in `test/`:
+`npm test` builds (with `--hot`, so the stable hot-load folders for the browsers on this
+machine are refreshed too), then
+`test/run.mjs` verifies the build artifacts, that the manifest declares
+the all-URL content script (3 checks), that every extracted `dist/hot/` folder mirrors its
+built bundle (3 checks per detected browser), and runs three suites (154 checks) in `test/`:
 
 | Suite | Covers |
 | --- | --- |
@@ -133,7 +167,9 @@ page/index.html   self-contained product page (bundled into every build)
 pages/            multi-page public site (Home, About, Projects, Contact)
 pages/assets/css  shared stylesheet (main.css)
 pages/assets/js   shared interactivity (main.js)
-build.mjs         esbuild bundling, icon generation, page + site render, packaging
+build.mjs         esbuild bundling, icon generation, page + site render, packaging,
+                  per-OS browser detection for dist/hot/ hot-load extraction
+docs/             design notes: hot-loading workflow, project rules reference
 test/             jsdom suites: page, worker, widget smoke
 ```
 
@@ -171,6 +207,9 @@ summoning it.
 ## Changelog
 
 The full version history lives in [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog format, one
-section per release tag from v1.0.0 on. Every version bump updates it in the same commit; the
-invariant is in `.clinerules/releases.md` and the `/release` skill holds the complete release
-checklist.
+section per release tag from v1.0.0 on, parsed at build time into the product page (never
+copied here). Every version bump updates it in the same commit; the release invariant, the
+changelog entry standard (user-facing changes only, exact subheadings), the
+README/CHANGELOG placement discipline and the `/release` skill checklist are recorded for
+reference in [docs/project-rules.md](docs/project-rules.md) — they are development-side
+rules, not product code, so they live outside this repo's build.

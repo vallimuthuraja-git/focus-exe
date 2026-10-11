@@ -177,6 +177,11 @@ check('deadline panel clock alive', app.digits('.deadline-panel .deadline-clock'
        in the header. Clicking one asks the worker to open a tab. */
 check('no about button left in the header', !app.root().querySelector('.header-actions .about-button'));
 check('header keeps only minimize', app.root().querySelectorAll('.header-actions button').length === 1);
+check(
+  'badge close button exists once, outside the header',
+  app.root().querySelectorAll('.badge-close-button').length === 1 &&
+    !app.root().querySelector('.header-actions .badge-close-button')
+);
 
 for (const panel of ['expanded-settings-panel', 'mini-settings-panel']) {
   const scope = app.root().querySelector(`.${panel}`);
@@ -225,6 +230,16 @@ check('outside pointerdown auto-minimizes expanded widget', app.root().classList
 app.window.document.dispatchEvent(new app.window.MouseEvent('pointerdown', { bubbles: true }));
 await wait(80);
 check('already minimized stays', app.root().classList.contains('minimized'));
+
+/* Badge close hides the widget entirely, like the toolbar hide command. */
+app.click('.badge-close-button');
+await wait(80);
+check('badge close tears the widget down', !app.host());
+check('badge close flushed state on teardown', typeof app.store.focusExeStateV1?.mode === 'string');
+app.deliver({ type: 'focus-exe/command:show' });
+await wait(80);
+check('widget remounts after badge close', Boolean(app.host()) && Boolean(app.root()));
+check('remounted widget still has one badge close', app.root().querySelectorAll('.badge-close-button').length === 1);
 
 app.deliver({ type: 'focus-exe/command:toggle' });
 await wait(80);

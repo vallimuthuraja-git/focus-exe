@@ -285,6 +285,63 @@ button {
     padding: 0;
 }
 
+/* Small rounded badge-style close (mobile-home-screen ✕). Hidden until the
+   pointer is inside the widget; shown in both the min and max views. */
+.badge-close-button {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    z-index: 60;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    color: #fff;
+    background: #dc5b55;
+    border: 2px solid #181b1e;
+    border-radius: 999px;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, .45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: scale(.7);
+    transition:
+        opacity 140ms ease,
+        visibility 140ms ease,
+        transform 160ms cubic-bezier(.2, .8, .25, 1),
+        background-color 120ms ease;
+}
+
+.badge-close-button .material-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.assistant:hover .badge-close-button,
+.assistant:focus-within .badge-close-button,
+.assistant.controls-pinned .badge-close-button {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+.badge-close-button:hover,
+.badge-close-button:focus-visible {
+    background: #e86f69;
+    outline: none;
+}
+
+/* Touch devices have no hover: keep the badge reachable, like the mini pop
+   controls, and cover both views. */
+@media (hover: none), (pointer: coarse) {
+    .badge-close-button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: scale(1);
+    }
+}
+
 .action-button,
 .confirm-button,
 .cancel-button {

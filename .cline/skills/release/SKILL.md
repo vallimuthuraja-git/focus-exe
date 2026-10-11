@@ -5,7 +5,8 @@ description: Cut a Focus Exe release - bump the version, write the CHANGELOG.md 
 
 # Release
 
-Cut a release for this repo. The always-on rule `.clinerules/releases.md` is authoritative:
+Cut a release for this repo. The release invariant (always-on rule in the agent config,
+mirrored at `docs/project-rules-releases.md`) is authoritative:
 **no version bump without a changelog entry in the same commit, and no release push without an
 annotated `vX.Y.Z` tag.**
 
@@ -39,11 +40,17 @@ This updates `version` in **both** `package.json` and `package-lock.json` (top l
 
 ## 5. Update CHANGELOG.md (same commit as the bump)
 
+- Read the changelog rule (`docs/project-rules-changelog.md` in this repo's docs mirror, or
+  the live copy in the agent config) first — it holds the entry standard (Keep a Changelog,
+  user-facing changes only, exact subheadings, no `### Tests`). This is the only point in
+  the release flow that needs it.
 - Move everything under `## [Unreleased]` into a new `## [x.y.z] - YYYY-MM-DD` section directly
   below it (today's date, ISO `YYYY-MM-DD`), newest version first; leave `[Unreleased]` empty
   above the new section.
-- Categorise with `### Added`, `### Changed`, `### Fixed`, `### Security` (add `### Tests` when
-  the check counts changed). User-facing prose first, identifiers in backticks.
+- Categorise with `### Added`, `### Changed`, `### Fixed`, `### Security` (plus
+  `### Deprecated`/`### Removed` if the release carries one of those). User-facing prose
+  first, identifiers in backticks. Check counts and suite changes go in the commit message,
+  not here.
 - Mirror the release onto the product page: prepend the new `vX.Y.Z` card (today's date,
   one-line bullets) to the `#changelog` section in `page/index.html`. `test/page.mjs` fails if
   the current `package.json` version is missing there.

@@ -16,6 +16,8 @@ export interface WidgetHooks {
   onSetting(key: SettingKey, value: boolean): void;
   onOpen(target: SettingsLink): void;
   onMinimize(minimized: boolean): void;
+  /** The badge close button was hit: tear the widget down for this page. */
+  onClose(): void;
 }
 
 /** The element that bounds the widget's UI (its shadow-root host). The
@@ -166,11 +168,15 @@ export function createWidget(hooks: WidgetHooks): Widget {
   const startBtn = button('action-button start-button', 'play', 'Start Focus', 'Start focus timer');
   const resetBtn = button('action-button reset-button', 'reset', 'Reset', 'Reset timer');
   const switchBtn = button('action-button switch-button', 'coffee', 'Start Break', 'Switch timer mode');
+  // Small rounded badge-style ✕, mobile-home-screen style: it only appears
+  // while the pointer is inside the widget, in both the min and max views.
+  const closeBtn = button('badge-close-button', 'cancel', '', 'Close widget');
 
   settingsBtn.setAttribute('aria-haspopup', 'dialog');
   settingsBtn.setAttribute('aria-expanded', 'false');
 
   need(root, '.header-actions').append(minimizeBtn);
+  root.appendChild(closeBtn);
   need(root, '.controls').append(startBtn, resetBtn, switchBtn, settingsBtn);
 
   const popStart = popButton('pop-start', 'play', 'Start Focus');
@@ -337,6 +343,13 @@ export function createWidget(hooks: WidgetHooks): Widget {
     hooks.onGesture();
     setMinimized(!minimized);
     hooks.onMinimize(minimized);
+  });
+
+  closeBtn.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    hooks.onGesture();
+    hooks.onClose();
   });
 
   toggleFrom(settingsBtn, () => toggleSettings(false));

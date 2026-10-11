@@ -4,10 +4,41 @@ All notable changes to Focus Exe are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/). One section per release tag, newest first. Every
-version bump updates this file in the same commit that lands the bump — the invariant lives in
-`.clinerules/releases.md`, and the `/release` skill holds the full checklist.
+version bump updates this file in the same commit that lands the bump — the invariant, the
+entry standard (user-facing changes only, subheadings
+`Added`/`Changed`/`Deprecated`/`Removed`/`Fixed`/`Security`) and the README/CHANGELOG
+placement discipline are recorded for reference in `docs/project-rules.md`,
+and the `/release` skill holds the full checklist. This file and the rule files are read on
+demand — when preparing a release, changing a public API, or modifying user-facing features —
+not as part of every task.
 
 ## [Unreleased]
+
+### Added
+
+- Small rounded badge-style ✕ close button on the widget (mobile-home-screen style): it is
+  hidden until the pointer is inside the widget and appears in both the minimized and
+  expanded views; clicking it tears the widget down for the page, state flushed, and the
+  toolbar toggle can bring it back. On touch (`hover: none`/`pointer: coarse`) the badge
+  stays visible, mirroring the existing mini pop controls.
+- Hot-load folders for local testing: `npm run hot` (also what `npm test` builds with)
+  detects the browsers installed on this OS — Linux, Windows or macOS — and extracts only
+  those bundles into stable, version-less folders, one per detected browser
+  (`dist/hot/<browser>/`), wiped and refilled in place so the paths never change across
+  releases. Point a browser at its folder once (*Load unpacked* / *Load Temporary
+  Add-on*) and every later build hot-loads; a stale folder for an uninstalled browser is
+  deleted. Browsers that are not installed are skipped; the per-browser `dist/<browser>/`
+  folders, the full multi-target build and the release zips are untouched, so store
+  uploads never depend on what is installed locally. Documented in `docs/hot-loading.md`.
+- Documentation-only: the development rules (release invariants, changelog management,
+  README/CHANGELOG placement discipline) moved out of the tracked config directories into
+  `docs/project-rules*.md` and a repo-root `CLAUDE.md` pointer; the live copies live in the
+  agent configuration and are read on demand. The changelog-placement rule records the
+  unified practice: `CHANGELOG.md` stays at the repository root as the single source of
+  truth, consumed by stable reference (this build injects it as JSON; a runtime consumer
+  would fetch the raw/jsDelivr/GitHub-API URL) and never duplicated into the README, which
+  only links to it (an optional latest-release snippet must be tool-written between
+  `CHANGELOG-START/END` markers).
 
 ## [1.3.0] - 2026-10-07
 
@@ -27,10 +58,6 @@ version bump updates this file in the same commit that lands the bump — the in
 ### Fixed
 
 - Reopening the widget pushes the running session into the audio engine only when this tab holds the shared lease, so a reopened panel is no longer silent but also never layers noise beds or metronome streams with other open tabs
-
-### Tests
-
-- 146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 95).
 
 ## [1.2.0] - 2026-10-06
 
@@ -60,12 +87,6 @@ version bump updates this file in the same commit that lands the bump — the in
 - The `syncInputs` helper was referenced in `render()` but missing from the widget module;
   it is now defined so the audio toggle inputs stay in sync on every render.
 
-### Tests
-
-- 146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL
-  content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the
-  three suites (page 31, worker 20, smoke 92).
-
 ## [1.1.2] - 2026-09-27
 
 ### Added
@@ -92,10 +113,6 @@ version bump updates this file in the same commit that lands the bump — the in
   had drifted to 1.0.0).
 - The product page's *How it works* copy no longer claims the audio pauses when the tab is
   hidden.
-
-### Tests
-
-- 141/141 checks (page 31, worker 20, smoke 90).
 
 ## [1.1.1] - 2026-09-27
 
@@ -145,10 +162,6 @@ version bump updates this file in the same commit that lands the bump — the in
   the push to `gh-pages` failed with *"Permission to vallimuthuraja-git/focus-exe.git denied to
   github-actions[bot]"*.
 
-### Tests
-
-- 131/131 checks (page 30, worker 20, smoke 81), up from 110.
-
 ## [1.0.1] - 2026-09-27
 
 ### Fixed
@@ -179,10 +192,6 @@ version bump updates this file in the same commit that lands the bump — the in
   on `main`.
 - Documentation for the test suites, and a note that `DEADLINE` is a build-time constant that
   counts down to 0 and stays there once it passes.
-
-### Tests
-
-- 110/110 checks (page 30, worker 17, smoke 63) against the built bundles.
 
 ## [1.0.0] - 2026-09-27
 

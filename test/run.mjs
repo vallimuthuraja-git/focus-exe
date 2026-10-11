@@ -7,7 +7,7 @@
  * or missing.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,11 +39,52 @@ const manifestChecks = {
     !(manifest.permissions ?? []).includes('<all_urls>') &&
     !(manifest.host_permissions ?? []).includes('<all_urls>')
 };
-for (const [label, pass] of Object.entries(manifestChecks)) {
+
+/* The stable hot-load folders (npm run hot) mirror the real bundles for the
+   browsers detected on this OS: same manifest, same entry scripts, stable
+   version-less paths under dist/hot/. */
+const hotChecks = {};
+const hotRoot = join(ROOT, 'dist/hot');
+const hotDirs = existsSync(hotRoot)
+  ? readdirSync(hotRoot, { withFileTypes: true })
+      .filter(item => item.isDirectory())
+      .map(item => item.name)
+      .sort()
+  : [];
+for (const name of hotDirs) {
+  const hotDir = join(hotRoot, name);
+  const srcDir = join(ROOT, 'dist', name);
+  let hotManifest = null;
+  try {
+    hotManifest = JSON.parse(readFileSync(join(hotDir, 'manifest.json'), 'utf8'));
+  } catch {
+    hotManifest = null;
+  }
+  const sourceManifest = existsSync(join(srcDir, 'manifest.json'))
+    ? JSON.parse(readFileSync(join(srcDir, 'manifest.json'), 'utf8'))
+    : null;
+  hotChecks[`dist/hot/${name} manifest matches dist/${name}`] =
+    JSON.stringify(hotManifest) === JSON.stringify(sourceManifest);
+  for (const file of ['content.js', 'background.js']) {
+    hotChecks[`dist/hot/${name} carries ${file}`] =
+      existsSync(join(hotDir, file)) && existsSync(join(srcDir, file));
+  }
+}
+// A detected browser must actually have been extracted; an unknown folder
+// name (not one of the six build targets) is a bug in the hot step.
+hotChecks['every hot folder maps to a build target'] =
+  hotDirs.length === 0 || hotDirs.every(name =>
+    ['chrome', 'edge', 'brave', 'opera', 'firefox', 'safari'].includes(name));
+
+for (const [label, pass] of Object.entries({ ...manifestChecks, ...hotChecks })) {
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${label}`);
 }
 if (!Object.values(manifestChecks).every(Boolean)) {
   console.error('\nManifest does not declare the all-tabs content script.');
+  process.exit(1);
+}
+if (!Object.values(hotChecks).every(Boolean)) {
+  console.error('\nHot-load folders are missing or stale — run `npm run hot` first.');
   process.exit(1);
 }
 

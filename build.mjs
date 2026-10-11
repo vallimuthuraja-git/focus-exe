@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
@@ -19,6 +21,13 @@ const value = (name, fallback) => {
 
 const dev = flags.has('--dev');
 const wantZip = flags.has('--zip') || flags.has('--pack');
+/**
+ * `--hot` also refreshes two version-less "hot load" folders (see HOT_BUNDLES
+ * below) after the build: stable paths you point a browser's *Load unpacked*
+ * at once, then every rebuild replaces the files underneath so the browser
+ * picks up the latest code without re-picking a folder.
+ */
+const wantHot = flags.has('--hot');
 const only = value('target', undefined);
 
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -326,6 +335,138 @@ for (const target of targets) {
 }
 
 console.log(`\nFocus Exe ${pkg.version}: ${targets.map(t => t.dir).join(', ')} -> dist/`);
+
+/**
+ * Stable, version-less folders for local hot-loading.
+ *
+ * `dist/hot/<browser>` folders are wiped and refilled from the freshly built
+ * bundles on every run, so their paths never change across version upgrades.
+ * The set is not fixed: the build first detects which browsers are actually
+ * installed on this OS (Linux, Windows, macOS) and extracts only those
+ * bundles — everything else is skipped and any stale folder removed. Point
+ * each browser at its folder once (Load unpacked / Load Temporary Add-on);
+ * after that every build hot-loads.
+ *
+ * Detection is per-OS but only ever *narrows* the local hot-load set: CI and
+ * `--zip` packaging still build every target, since a store upload does not
+ * care what is installed on the build machine.
+ */
+const CHROMIUM_BROWSERS = ['chrome', 'edge', 'brave', 'opera'];
+
+/** Absolute paths a browser binary may live at, per OS. Order matters for
+ *  Windows: the per-user install comes first so a portable/system install
+ *  never shadows it. */
+const BROWSER_LOCATIONS = {
+  linux: {
+    chrome: ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/opt/google/chrome/chrome'],
+    edge: ['/usr/bin/microsoft-edge', '/usr/bin/microsoft-edge-stable'],
+    brave: ['/usr/bin/brave-browser', '/usr/bin/brave'],
+    opera: ['/usr/bin/opera', '/usr/bin/opera-stable'],
+    firefox: ['/usr/bin/firefox', '/usr/bin/firefox-esr', '/snap/bin/firefox', '/usr/lib/firefox/firefox']
+  },
+  win32: {
+    chrome: ['LOCALAPPDATA/Google/Chrome/Application/chrome.exe', 'PROGRAMFILES/Google/Chrome/Application/chrome.exe', 'PROGRAMFILES(X86)/Google/Chrome/Application/chrome.exe'],
+    edge: ['PROGRAMFILES(X86)/Microsoft/Edge/Application/msedge.exe', 'PROGRAMFILES/Microsoft/Edge/Application/msedge.exe'],
+    brave: ['LOCALAPPDATA/BraveSoftware/Brave-Browser/Application/brave.exe', 'PROGRAMFILES/BraveSoftware/Brave-Browser/Application/brave.exe', 'PROGRAMFILES(X86)/BraveSoftware/Brave-Browser/Application/brave.exe'],
+    opera: ['LOCALAPPDATA/Programs/Opera/launcher.exe', 'PROGRAMFILES/Opera/launcher.exe', 'PROGRAMFILES(X86)/Opera/launcher.exe'],
+    firefox: ['LOCALAPPDATA/Mozilla Firefox/firefox.exe', 'PROGRAMFILES/Mozilla Firefox/firefox.exe', 'PROGRAMFILES(X86)/Mozilla Firefox/firefox.exe']
+  },
+  darwin: {
+    chrome: ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '~/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],
+    edge: ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'],
+    brave: ['/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'],
+    opera: ['/Applications/Opera.app/Contents/MacOS/Opera'],
+    firefox: ['/Applications/Firefox.app/Contents/MacOS/firefox']
+  }
+};
+
+/** Safari is "installed" only when the Xcode converter exists — there is no
+ *  binary to look for and no load-unpacked path without it. */
+function safariConverterExists() {
+  if (process.platform !== 'darwin') return false;
+  try {
+    execFileSync('xcrun', ['--find', 'safari-web-extension-converter'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function installedBrowsers() {
+  const table = BROWSER_LOCATIONS[process.platform];
+  if (!table) {
+    // Unknown OS (e.g. a CI container reporting something exotic): fall back
+    // to the two engine families so the folders still exist.
+    return new Set(['chrome', 'firefox']);
+  }
+  const found = new Set();
+  for (const [name, candidates] of Object.entries(table)) {
+    for (const candidate of candidates) {
+      // Absolute POSIX paths (Linux/macOS) pass through unchanged; Windows
+      // entries are env-var segments (`LOCALAPPDATA/...`) resolved below;
+      // `~/...` expands to the user's home.
+      const resolved = candidate.startsWith('~')
+        ? join(homedir(), candidate.slice(1))
+        : candidate.startsWith('/')
+          ? candidate
+          : join(process.env[candidate.split('/')[0].toUpperCase().replace(/\(.*$/, '')] ?? '\u0000', ...candidate.split('/').slice(1));
+      if (existsSync(resolved)) {
+        found.add(name);
+        break;
+      }
+    }
+  }
+  if (safariConverterExists()) found.add('safari');
+  return found;
+}
+
+if (wantHot) {
+  const installed = installedBrowsers();
+  const mapped = new Map();
+  for (const browser of CHROMIUM_BROWSERS) {
+    if (installed.has(browser)) mapped.set(browser, browser);
+  }
+  if (installed.has('firefox')) mapped.set('firefox', 'firefox');
+  if (installed.has('safari')) mapped.set('safari', 'safari');
+
+  const hotRoot = join(dist, 'hot');
+  // Stale folders from a browser that has since been uninstalled are removed
+  // so the hot-load directory only ever lists browsers on this machine.
+  for (const item of await readdir(hotRoot, { withFileTypes: true }).catch(() => [])) {
+    if (item.isDirectory() && !mapped.has(item.name)) {
+      await rm(join(hotRoot, item.name), { recursive: true, force: true });
+      console.log(`  removed dist/hot/${item.name}  (browser not detected on this OS)`);
+    }
+  }
+
+  if (mapped.size === 0) {
+    console.log('\nNo supported browser detected on this OS — nothing extracted to dist/hot/.');
+    console.log('Install Chrome/Edge/Brave/Opera/Firefox (or Safari with Xcode) and re-run `npm run hot`.');
+  }
+
+  for (const [browser, from] of mapped) {
+    const built = join(dist, from);
+    const hot = join(hotRoot, browser);
+    await rm(hot, { recursive: true, force: true });
+    await mkdir(hot, { recursive: true });
+    for (const item of await readdir(built, { withFileTypes: true })) {
+      if (item.isDirectory()) {
+        await cp(join(built, item.name), join(hot, item.name), { recursive: true });
+      } else {
+        await copyFile(join(built, item.name), join(hot, item.name));
+      }
+    }
+    console.log(`  hot     dist/hot/${browser}  (stable path, from ${from})`);
+  }
+
+  if (mapped.size > 0) {
+    console.log(
+      '\nHot-load once: chrome://extensions -> Load unpacked -> dist/hot/<browser>; ' +
+        'about:debugging -> Load Temporary Add-on -> dist/hot/firefox/manifest.json. ' +
+        'Rebuilds overwrite these folders in place.'
+    );
+  }
+}
 
 // Render the multi-page public site alongside the extension builds so the
 // GitHub Pages deployment never drifts from the extension bundle.
