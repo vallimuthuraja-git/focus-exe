@@ -17,7 +17,7 @@ const ROOT = join(HERE, '..');
 const artifacts = [
   'dist/chrome/content.js',
   'dist/chrome/background.js',
-  'dist/chrome/page/index.html',
+  'dist/page/index.html',
   'dist/chrome/manifest.json'
 ];
 const missing = artifacts.filter(file => !existsSync(join(ROOT, file)));

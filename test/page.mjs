@@ -8,7 +8,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const { JSDOM, VirtualConsole } = require('jsdom');
 
-const html = readFileSync(join(ROOT, 'dist/chrome/page/index.html'), 'utf8');
+const html = readFileSync(join(ROOT, 'dist/page/index.html'), 'utf8');
 
 const results = [];
 const check = (name, pass, extra = '') => {
