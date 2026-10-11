@@ -112,6 +112,38 @@ header.site {
   color: var(--text);
 }
 .brand:hover { text-decoration: none; }
+.brand:hover .brand-text { color: var(--accent); }
+
+.github-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  transition: transform .14s ease, color .14s ease, background-color .14s ease;
+}
+.github-icon svg { width: 22px; height: 22px; }
+.github-icon:hover {
+  text-decoration: none;
+  color: var(--text);
+  background: #232a32;
+  transform: translateY(-2px);
+}
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.footer-nav a {
+  color: var(--muted);
+  font-size: 14px;
+  transition: color .14s ease;
+}
+.footer-nav a:hover {
+  color: var(--text);
+}
 .brand svg { width: 26px; height: 26px; }
 nav.links { display: flex; gap: 10px; margin-left: auto; font-size: 14px; }
 nav.links a { color: var(--muted); padding: 8px 5px; }
@@ -355,7 +387,7 @@ footer .row .spacer { margin-left: auto; }
         <circle cx="12" cy="12" r="9" />
         <path d="M12 7v5.4l3.2 2" stroke-linecap="round" />
       </svg>
-      Focus&nbsp;Exe
+      <span class="brand-text">Focus&nbsp;Exe</span>
     </a>
     <nav class="links" aria-label="Sections">
       <a href="#features">Features</a>
@@ -713,9 +745,7 @@ footer .row .spacer { margin-left: auto; }
           "Reopening the widget pushes the running session into the audio engine only when this tab holds the shared lease, so a reopened panel is no longer silent but also never layers noise beds or metronome streams with other open tabs"
         ],
         "Security": [],
-        "Tests": [
-          "146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 95)."
-        ]
+        "Tests": []
       }
     },
     {
@@ -734,9 +764,7 @@ footer .row .spacer { margin-left: auto; }
           "The `syncInputs` helper was referenced in `render()` but missing from the widget module; it is now defined so the audio toggle inputs stay in sync on every render."
         ],
         "Security": [],
-        "Tests": [
-          "146/146 checks: `test/run.mjs` verifies the built `manifest.json` declares the all-URL content script and keeps `<all_urls>` out of `permissions` (3 manifest checks), plus the three suites (page 31, worker 20, smoke 92)."
-        ]
+        "Tests": []
       }
     },
     {
@@ -755,9 +783,7 @@ footer .row .spacer { margin-left: auto; }
         ],
         "Fixed": [],
         "Security": [],
-        "Tests": [
-          "141/141 checks (page 31, worker 20, smoke 90)."
-        ]
+        "Tests": []
       }
     },
     {
@@ -793,9 +819,7 @@ footer .row .spacer { margin-left: auto; }
           "The page deploy job is granted `contents: write`: the default `GITHUB_TOKEN` is read-only, so the push to `gh-pages` failed with *\"Permission to vallimuthuraja-git/focus-exe.git denied to github-actions[bot]\"*."
         ],
         "Security": [],
-        "Tests": [
-          "131/131 checks (page 30, worker 20, smoke 81), up from 110."
-        ]
+        "Tests": []
       }
     },
     {
@@ -814,9 +838,7 @@ footer .row .spacer { margin-left: auto; }
           "The timer no longer reads `0:00` on any re-summon, and Start no longer builds a zero-length session that settles immediately and fires a bogus \"Focus session complete\" notification. `sanitize()` used `Number.isFinite(Number(x))` to detect a stored number, but `Number(null)`, `Number('')` and `Number([])` are all `0`, so the app's own `remaining: null` (written on every settle, reset and start) passed the guard and became `0`. `reconcile()` also settled a stored `running:true/endAt:null` record — exactly the corruption `sanitize()` exists to reject. `finiteOrNull()` now accepts only a real finite number for `endAt` and `remaining`, and `clampNumber` no longer coerces either, so non-numeric input falls back instead of silently becoming `0`."
         ],
         "Security": [],
-        "Tests": [
-          "110/110 checks (page 30, worker 17, smoke 63) against the built bundles."
-        ]
+        "Tests": []
       }
     },
     {
@@ -994,11 +1016,18 @@ footer .row .spacer { margin-left: auto; }
 <footer class="site">
   <div class="wrap row">
     <span>Focus Exe v1.3.0 &middot; MIT licensed</span>
+    <div class="footer-nav">
+      <a href="https://github.com/vallimuthuraja-git/focus-exe" rel="noopener">Source code</a>
+      <a href="https://github.com/vallimuthuraja-git/focus-exe/releases" rel="noopener">Releases</a>
+      <a href="https://github.com/vallimuthuraja-git/focus-exe/issues" rel="noopener">Report an issue</a>
+      <a href="#support">Support</a>
+    </div>
     <span class="spacer"></span>
-    <a href="https://github.com/vallimuthuraja-git/focus-exe" rel="noopener">Source code</a>
-    <a href="https://github.com/vallimuthuraja-git/focus-exe/releases" rel="noopener">Releases</a>
-    <a href="https://github.com/vallimuthuraja-git/focus-exe/issues" rel="noopener">Report an issue</a>
-    <a href="#support">Support</a>
+    <a class="github-icon" href="https://github.com/vallimuthuraja-git/focus-exe" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495 1.0 0-.826-.63-1.587-.992-1.67-1.77-1.48-.91-.65-.91-.65.664-.08 1.297-.816 2.665-1.283 4.076-.728.001-.568.277-.569.569 0 3.554-.232 4.586-.471 5.415-.247.37-.519 1.011-.519 1.603v2.384c0 .32.217.694.825.577C20.565 21.8 24 17.303 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
   </div>
 </footer>
 
