@@ -204,69 +204,8 @@ const pageHtml = pageSource
   // wrapper is provided by the source template; only the JSON body is injected.
   .replace('__CHANGELOG_JSON__', escapeHtmlForScript(changelogJson));
 
-/**
- * Render the multi-page public site (pages/) into dist/site/.
- *
- * The site is the GitHub Pages deployment: separate HTML pages (Home,
- * About, Projects, Contact) sharing one stylesheet and one script. Each
- * page carries the same build-time placeholders as the extension's
- * self-contained page, so a single substitution pass keeps them in sync.
- * Static assets under pages/assets/ are copied verbatim.
- */
-async function renderSite() {
-  const siteRoot = join(root, 'pages');
-  const siteOut = join(dist, 'site');
-  await rm(siteOut, { recursive: true, force: true });
-  await mkdir(siteOut, { recursive: true });
-
-  const substitute = (html) => html
-    .replaceAll('__VERSION__', pkg.version)
-    .replaceAll('__RELEASE_BASE__', releaseBase)
-    .replaceAll('__REPO_URL__', repoUrl)
-    .replace('__CHANGELOG_JSON__', escapeHtmlForScript(changelogJson));
-
-  // Render every top-level HTML page.
-  const entries = await readdir(siteRoot, { withFileTypes: true });
-  let pages = 0;
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.html')) continue;
-    const source = await readFile(join(siteRoot, entry.name), 'utf8');
-    await writeFile(join(siteOut, entry.name), substitute(source));
-    pages += 1;
-  }
-
-  // Copy the static assets (css, js, icons) verbatim.
-  const assetsDir = join(siteRoot, 'assets');
-  const copyAssets = async (dir, outDir) => {
-    await mkdir(outDir, { recursive: true });
-    for (const item of await readdir(dir, { withFileTypes: true })) {
-      const from = join(dir, item.name);
-      const to = join(outDir, item.name);
-      if (item.isDirectory()) {
-        await copyAssets(from, to);
-      } else {
-        await copyFile(from, to);
-      }
-    }
-  };
-  await copyAssets(assetsDir, join(siteOut, 'assets'));
-
-  // Machine-readable release history, alongside the rendered pages.
-  await writeFile(join(siteOut, 'changelog.json'), changelogJson);
-
-  console.log(`Multi-page site v${pkg.version}: ${pages} pages + assets -> dist/site/`);
-  return siteOut;
-}
-
-if (flags.has('--page')) {
-  // preview only: render the multi-page site without bundling the extension
-  await renderSite();
-  // keep the legacy single-file product page for the extension bundle
-  await mkdir(join(dist, 'page'), { recursive: true });
-  await writeFile(join(dist, 'page/index.html'), pageHtml);
-  await writeFile(join(dist, 'page/changelog.json'), changelogJson);
-  process.exit(0);
-}
+// The multi-page public site (pages/) was removed; GitHub Pages now serves
+// the single bundled product page (page/index.html) of the extension.
 
 await rm(cache, { recursive: true, force: true });
 await mkdir(cache, { recursive: true });
@@ -468,7 +407,12 @@ if (wantHot) {
   }
 }
 
-// Render the multi-page public site alongside the extension builds so the
-// GitHub Pages deployment never drifts from the extension bundle.
-await renderSite();
+
+// GitHub Pages deployment: the single bundled product page.
+await mkdir(join(dist, 'page'), { recursive: true });
+await writeFile(join(dist, 'page/index.html'), pageHtml);
+await writeFile(join(dist, 'page/changelog.json'), changelogJson);
+await writeFile(join(dist, '.nojekyll'), '');
+
+
 
