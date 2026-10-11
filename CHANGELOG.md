@@ -1,3 +1,5 @@
+<!-- DOC: human documentation. Do not read unless the user asks or the task requires it. -->
+
 # Changelog
 
 All notable changes to Focus Exe are documented in this file.

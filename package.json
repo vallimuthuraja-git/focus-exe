@@ -14,11 +14,11 @@
   },
   "scripts": {
     "build": "node build.mjs",
+    "build:local": "node build.mjs --local",
     "dev": "node build.mjs --dev",
-    "hot": "node build.mjs --hot",
     "pack": "node build.mjs --zip",
     "typecheck": "tsc --noEmit",
-    "pretest": "node build.mjs --hot",
+    "pretest": "node build.mjs",
     "test": "node test/run.mjs",
     "verify": "tsc --noEmit && node build.mjs --zip",
     "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",

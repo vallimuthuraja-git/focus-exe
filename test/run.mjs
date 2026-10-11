@@ -40,51 +40,42 @@ const manifestChecks = {
     !(manifest.host_permissions ?? []).includes('<all_urls>')
 };
 
-/* The stable hot-load folders (npm run hot) mirror the real bundles for the
-   browsers detected on this OS: same manifest, same entry scripts, stable
-   version-less paths under dist/hot/. */
-const hotChecks = {};
-const hotRoot = join(ROOT, 'dist/hot');
-const hotDirs = existsSync(hotRoot)
-  ? readdirSync(hotRoot, { withFileTypes: true })
+/* Verify that all built browser targets have the required files.
+   Each dist/<browser>/ should contain manifest.json, content.js, background.js. */
+const buildChecks = {};
+const buildRoot = join(ROOT, 'dist');
+const buildDirs = existsSync(buildRoot)
+  ? readdirSync(buildRoot, { withFileTypes: true })
       .filter(item => item.isDirectory())
       .map(item => item.name)
+      .filter(name => ['chrome', 'edge', 'brave', 'opera', 'firefox', 'safari'].includes(name))
       .sort()
   : [];
-for (const name of hotDirs) {
-  const hotDir = join(hotRoot, name);
-  const srcDir = join(ROOT, 'dist', name);
-  let hotManifest = null;
-  try {
-    hotManifest = JSON.parse(readFileSync(join(hotDir, 'manifest.json'), 'utf8'));
-  } catch {
-    hotManifest = null;
-  }
-  const sourceManifest = existsSync(join(srcDir, 'manifest.json'))
-    ? JSON.parse(readFileSync(join(srcDir, 'manifest.json'), 'utf8'))
-    : null;
-  hotChecks[`dist/hot/${name} manifest matches dist/${name}`] =
-    JSON.stringify(hotManifest) === JSON.stringify(sourceManifest);
-  for (const file of ['content.js', 'background.js']) {
-    hotChecks[`dist/hot/${name} carries ${file}`] =
-      existsSync(join(hotDir, file)) && existsSync(join(srcDir, file));
+
+for (const name of buildDirs) {
+  const buildDir = join(buildRoot, name);
+  for (const file of ['manifest.json', 'content.js', 'background.js']) {
+    buildChecks[`dist/${name} carries ${file}`] =
+      existsSync(join(buildDir, file));
   }
 }
-// A detected browser must actually have been extracted; an unknown folder
-// name (not one of the six build targets) is a bug in the hot step.
-hotChecks['every hot folder maps to a build target'] =
-  hotDirs.length === 0 || hotDirs.every(name =>
-    ['chrome', 'edge', 'brave', 'opera', 'firefox', 'safari'].includes(name));
+// Every build target must have the required files
+buildChecks['every build target has required files'] =
+  buildDirs.length > 0 && buildDirs.every(name =>
+    ['manifest.json', 'content.js', 'background.js'].every(file =>
+      existsSync(join(buildRoot, name, file))
+    )
+  );
 
-for (const [label, pass] of Object.entries({ ...manifestChecks, ...hotChecks })) {
+for (const [label, pass] of Object.entries({ ...manifestChecks, ...buildChecks })) {
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${label}`);
 }
 if (!Object.values(manifestChecks).every(Boolean)) {
   console.error('\nManifest does not declare the all-tabs content script.');
   process.exit(1);
 }
-if (!Object.values(hotChecks).every(Boolean)) {
-  console.error('\nHot-load folders are missing or stale — run `npm run hot` first.');
+if (!Object.values(buildChecks).every(Boolean)) {
+  console.error('\nBuild folders are missing required files — run `npm run build` first.');
   process.exit(1);
 }
 

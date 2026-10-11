@@ -17,8 +17,9 @@ export const COMMAND = Object.freeze({
 
 export const COMPLETE = 'focus-exe/complete';
 
-/** Bundled product page, opened in a tab from the settings panel. */
-export const PAGE_PATH = 'page/index.html';
+/** Live product page hosted on GitHub Pages. The extension points at this
+ * URL instead of bundling a self-contained copy of the page. */
+export const PAGE_PATH = 'https://vallimuthuraja-git.github.io/focus-exe/';
 
 /** Source repository, injected by build.mjs from package.json. */
 export const REPO_URL = __REPO_URL__;

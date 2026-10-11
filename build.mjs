@@ -7,8 +7,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
 import * as esbuild from 'esbuild';
 
-import { parseChangelog } from './src/changelog.ts';
-
 const root = dirname(fileURLToPath(import.meta.url));
 const dist = join(root, 'dist');
 const cache = join(root, '.build');
@@ -21,21 +19,10 @@ const value = (name, fallback) => {
 
 const dev = flags.has('--dev');
 const wantZip = flags.has('--zip') || flags.has('--pack');
-/**
- * `--hot` also refreshes two version-less "hot load" folders (see HOT_BUNDLES
- * below) after the build: stable paths you point a browser's *Load unpacked*
- * at once, then every rebuild replaces the files underneath so the browser
- * picks up the latest code without re-picking a folder.
- */
-const wantHot = flags.has('--hot');
+const wantLocal = flags.has('--local') || flags.has('--detect');
 const only = value('target', undefined);
 
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-
-/** Read, parse, and serialize the release history as stable JSON. */
-const changelogSource = await readFile(join(root, 'CHANGELOG.md'), 'utf8');
-const releases = parseChangelog(changelogSource);
-const changelogJson = `${JSON.stringify(releases, null, 2)}\n`;
 
 /**
  * Prepare a JSON string for safe inclusion inside a
@@ -50,12 +37,6 @@ const changelogJson = `${JSON.stringify(releases, null, 2)}\n`;
  *     the HTML. Encoded as `&#x5f;&#x5f;` so the raw HTML has no `__` run;
  *     the render script decodes it back to `__` before `JSON.parse`.
  */
-function escapeHtmlForScript(value) {
-  return value
-    .replace(/<\//g, '<\\/')
-    .replace(/__/g, '&#x5f;&#x5f;');
-}
-
 /* ---------- icons: generated so no binary assets live in the repo ---------- */
 
 const CRC_TABLE = (() => {
@@ -69,6 +50,8 @@ const CRC_TABLE = (() => {
   }
   return table;
 })();
+
+
 
 function crc32(buffer) {
   let c = -1;
@@ -198,11 +181,7 @@ const pageHtml = pageSource
   .replaceAll('__VERSION__', pkg.version)
   .replaceAll('__RELEASE_BASE__', releaseBase)
   .replaceAll('__REPO_URL__', repoUrl)
-  // Inject the stable, machine-readable release history as an inline JSON
-  // block. It is parsed by the product page at runtime, so the changelog is
-  // never hand-typed into the HTML markup. The `<script type="application/json">`
-  // wrapper is provided by the source template; only the JSON body is injected.
-  .replace('__CHANGELOG_JSON__', escapeHtmlForScript(changelogJson));
+
 
 // The multi-page public site (pages/) was removed; GitHub Pages now serves
 // the single bundled product page (page/index.html) of the extension.
@@ -248,33 +227,6 @@ if (targets.length === 0) {
 
 const icons = new Map([16, 32, 48, 128].map(size => [size, renderIcon(size)]));
 
-for (const target of targets) {
-  const out = join(dist, target.dir);
-  await rm(out, { recursive: true, force: true });
-  await mkdir(join(out, 'icons'), { recursive: true });
-  await mkdir(join(out, 'page'), { recursive: true });
-
-  await copyFile(join(cache, 'content.js'), join(out, 'content.js'));
-  await copyFile(join(cache, 'background.js'), join(out, 'background.js'));
-  for (const [size, data] of icons) {
-    await writeFile(join(out, `icons/icon${size}.png`), data);
-  }
-  await writeFile(join(out, 'manifest.json'), `${JSON.stringify(target.manifest, null, 2)}\n`);
-  await writeFile(join(out, 'page/index.html'), pageHtml);
-  await writeFile(join(out, 'page/changelog.json'), changelogJson);
-
-  if (wantZip) {
-    const archive = join(dist, `focus-exe-${pkg.version}-${target.dir}.zip`);
-    await rm(archive, { force: true });
-    execFileSync('zip', ['-qr', archive, '.'], { cwd: out });
-    console.log(`  zipped  ${target.dir}`);
-  } else {
-    console.log(`  built   ${target.dir}`);
-  }
-}
-
-console.log(`\nFocus Exe ${pkg.version}: ${targets.map(t => t.dir).join(', ')} -> dist/`);
-
 /**
  * Stable, version-less folders for local hot-loading.
  *
@@ -285,12 +237,7 @@ console.log(`\nFocus Exe ${pkg.version}: ${targets.map(t => t.dir).join(', ')} -
  * bundles — everything else is skipped and any stale folder removed. Point
  * each browser at its folder once (Load unpacked / Load Temporary Add-on);
  * after that every build hot-loads.
- *
- * Detection is per-OS but only ever *narrows* the local hot-load set: CI and
- * `--zip` packaging still build every target, since a store upload does not
- * care what is installed on the build machine.
- */
-const CHROMIUM_BROWSERS = ['chrome', 'edge', 'brave', 'opera'];
+ }
 
 /** Absolute paths a browser binary may live at, per OS. Order matters for
  *  Windows: the per-user install comes first so a portable/system install
@@ -359,59 +306,57 @@ function installedBrowsers() {
   return found;
 }
 
-if (wantHot) {
+// Compute effective targets for the main dist/ build
+let effectiveTargets = targets;
+let localFiltered = false;
+if (wantLocal && !wantZip) {
   const installed = installedBrowsers();
-  const mapped = new Map();
-  for (const browser of CHROMIUM_BROWSERS) {
-    if (installed.has(browser)) mapped.set(browser, browser);
-  }
-  if (installed.has('firefox')) mapped.set('firefox', 'firefox');
-  if (installed.has('safari')) mapped.set('safari', 'safari');
-
-  const hotRoot = join(dist, 'hot');
-  // Stale folders from a browser that has since been uninstalled are removed
-  // so the hot-load directory only ever lists browsers on this machine.
-  for (const item of await readdir(hotRoot, { withFileTypes: true }).catch(() => [])) {
-    if (item.isDirectory() && !mapped.has(item.name)) {
-      await rm(join(hotRoot, item.name), { recursive: true, force: true });
-      console.log(`  removed dist/hot/${item.name}  (browser not detected on this OS)`);
+  // In CI, don't narrow — build all (or fallback) since CI containers often lack browsers
+  const isCI = process.env.CI === 'true';
+  if (!isCI) {
+    effectiveTargets = targets.filter(t => installed.has(t.dir));
+    if (effectiveTargets.length === 0) {
+      console.warn('No supported browser detected — building all targets as fallback');
+      effectiveTargets = targets;
+    } else {
+      localFiltered = true;
     }
-  }
-
-  if (mapped.size === 0) {
-    console.log('\nNo supported browser detected on this OS — nothing extracted to dist/hot/.');
-    console.log('Install Chrome/Edge/Brave/Opera/Firefox (or Safari with Xcode) and re-run `npm run hot`.');
-  }
-
-  for (const [browser, from] of mapped) {
-    const built = join(dist, from);
-    const hot = join(hotRoot, browser);
-    await rm(hot, { recursive: true, force: true });
-    await mkdir(hot, { recursive: true });
-    for (const item of await readdir(built, { withFileTypes: true })) {
-      if (item.isDirectory()) {
-        await cp(join(built, item.name), join(hot, item.name), { recursive: true });
-      } else {
-        await copyFile(join(built, item.name), join(hot, item.name));
-      }
-    }
-    console.log(`  hot     dist/hot/${browser}  (stable path, from ${from})`);
-  }
-
-  if (mapped.size > 0) {
-    console.log(
-      '\nHot-load once: chrome://extensions -> Load unpacked -> dist/hot/<browser>; ' +
-        'about:debugging -> Load Temporary Add-on -> dist/hot/firefox/manifest.json. ' +
-        'Rebuilds overwrite these folders in place.'
-    );
   }
 }
+
+// Build loop for main dist/ output — stable paths for hot-reload
+for (const target of effectiveTargets) {
+  const out = join(dist, target.dir);
+  const isNew = !existsSync(out);
+
+  if (isNew) {
+    await mkdir(join(out, 'icons'), { recursive: true });
+  }
+
+  await copyFile(join(cache, 'content.js'), join(out, 'content.js'));
+  await copyFile(join(cache, 'background.js'), join(out, 'background.js'));
+  for (const [size, data] of icons) {
+    await writeFile(join(out, `icons/icon${size}.png`), data);
+  }
+  await writeFile(join(out, 'manifest.json'), `${JSON.stringify(target.manifest, null, 2)}\n`);
+
+  if (wantZip) {
+    const archive = join(dist, `focus-exe-${pkg.version}-${target.dir}.zip`);
+    await rm(archive, { force: true });
+    execFileSync('zip', ['-qr', archive, '.'], { cwd: out });
+    console.log(`  zipped  ${target.dir}`);
+  } else {
+    const reason = localFiltered ? ' (detected)' : isNew ? ' (created)' : ' (updated)';
+    console.log(`  built   ${target.dir}${reason}`);
+  }
+}
+
+console.log(`\nFocus Exe ${pkg.version}: ${effectiveTargets.map(t => t.dir).join(', ')} -> dist/`);
 
 
 // GitHub Pages deployment: the single bundled product page.
 await mkdir(join(dist, 'page'), { recursive: true });
 await writeFile(join(dist, 'page/index.html'), pageHtml);
-await writeFile(join(dist, 'page/changelog.json'), changelogJson);
 await writeFile(join(dist, '.nojekyll'), '');
 
 
