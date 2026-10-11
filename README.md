@@ -1,4 +1,33 @@
+<!-- DOC: human documentation. Do not read unless the user asks or the task requires it. -->
+
 # Focus Exe
+
+A Manifest V3 browser extension: a Pomodoro focus timer with a deadline countdown, brown noise
+and a 60 BPM neuro-metronome. The widget is present in every tab and window of every browser, on
+any site, and stays in sync through shared extension storage.
+
+> **v1.3.0** — released 2026-10-07. This README reflects the latest release; the full
+> user-facing history lives in [CHANGELOG.md](CHANGELOG.md).
+
+![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Build](https://img.shields.io/badge/build-npm_run_build-success)
+
+## Contents
+
+- [Using it](#using-it)
+- [Features](#features)
+- [Build](#build)
+- [Load it locally](#load-it-locally)
+- [Publish](#publish)
+- [Test](#test)
+- [Configuration](#configuration)
+- [Product page](#product-page)
+- [Layout](#layout)
+- [Security notes](#security-notes)
+- [Roadmap](#roadmap)
+- [Changelog](#changelog)
 
 A Manifest V3 browser extension: a Pomodoro focus timer with a deadline countdown, brown noise
 and a 60 BPM neuro-metronome. The widget is present in every tab and window of every browser, on
@@ -10,14 +39,21 @@ any site, and stays in sync through shared extension storage.
 | --- | --- |
 | Click the extension icon | Toggle the widget on the current page (show / hide) |
 | `Alt+Shift+F` | Same, without leaving the keyboard (rebindable in your browser's shortcut settings) |
-| Open settings | Audio toggles, plus *About & support* and *GitHub* (both open in a new tab) |
+| Open settings | Audio toggles, plus the *About & support* and *GitHub* rows — both open the source repository on GitHub in a new tab |
 | Click anywhere on the page | Widget collapses to its compact bar |
 
 Features: 25/5 focus and recovery modes, mechanical flip-clock digits, a countdown to the
-deadline, session counter with progress bar, brown noise + metronome toggles, confirmations on
-every state change, minimize/expand, audio from exactly one tab no matter how many are open
-(closing the widget stops it, reopening it brings it back), and a desktop
-notification when a session or break ends.
+deadline, a bullseye session indicator, a session counter with progress bar, brown noise and a
+60 BPM look-ahead metronome that pauses with the tab, confirmations on every state change,
+minimise/expand, and a desktop notification when a session or break ends.
+
+The widget also has two audio behaviours that matter when it runs in many tabs: through a
+single-tab lease, brown noise and the metronome are audible from exactly one tab and stay
+silent in every other tab. The widget has a badge-style close button (hidden until the pointer
+enters the widget) that tears the widget down for the page, and it collapses to a compact bar
+when you click anywhere on the page.
+
+> Closing the widget stops the audio; reopening it brings it back on the current tab.
 
 ## Build
 
@@ -29,7 +65,7 @@ npm run hot          # build + extract only the browsers installed on this OS to
 npm run pack         # also writes a signed-ready .zip per browser
 npm run verify       # type-check + packaged build
 npm test             # build, then run the suites in test/
-npm run page         # multi-page site only -> dist/site/
+npm run page         # render the single-page product site -> dist/page/
 node build.mjs --target=firefox        # one browser only
 ```
 
@@ -113,38 +149,34 @@ BPM, volumes, widget widths and roll animation. The extension version follows `p
 
 ## Product page
 
-The public site is a **multi-page** static site in `pages/`: Home (`index.html`),
-About (`about.html`), Projects (`projects.html`) and Contact (`contact.html`),
-sharing one stylesheet (`pages/assets/css/main.css`) and one script
-(`pages/assets/js/main.js`). It is mobile-first, uses Lucide-style inline SVG
-icons throughout, and is deployed to GitHub Pages.
+The public site is a single, **self-contained** product page at `page/index.html`:
+no frameworks, no external fonts, no images, and no network requests. It is
+bundled into every build at `dist/<browser>/page/` so it works offline inside
+the extension (`chrome-extension://<id>/page/index.html`), and it is the page
+GitHub Pages serves. This replaces the removed `pages/` multi-page site; the
+single page is what stays shipped.
 
-`page/index.html` is a separate, **single self-contained** file — no frameworks,
-no external fonts, no images, no network requests — that is bundled into every
-build at `dist/<browser>/page/` so it works offline inside the extension
-(`chrome-extension://<id>/page/index.html`). The test suite enforces that it
-stays self-contained (no external resources), which is why the public site lives
-in `pages/` and the extension page stays in `page/`.
 
-Build-time placeholders are substituted by `build.mjs` in both:
+
+Build-time placeholders are substituted by `build.mjs`:
 
 | Placeholder | Replaced with |
 | --- | --- |
 | `__VERSION__` | `package.json` version |
 | `__RELEASE_BASE__` | `<repo>/releases/download/v<version>` |
 | `__REPO_URL__` | `package.json` repository URL |
-| release history | `CHANGELOG.md` parsed to inline JSON (Projects page) |
+
 
 The donation and support links are the one thing you must fill in: edit the
-`SUPPORT` object in `pages/assets/js/main.js` (Buy Me a Coffee handle, GitHub
-username, UPI id, PayPal link) and run `npm run build`. Until a handle is set,
-the button keeps pointing at the platform's home page and shows a small setup
-note, so the page can never 404.
+`SUPPORT` object at the bottom of `page/index.html` (Buy Me a Coffee handle,
+GitHub username, UPI id, PayPal link). Until a handle is set, the links keep
+pointing at their platform's home pages and show a small setup note, so the
+page can never 404.
 
-Deploying the site: `npm run page` renders the multi-page site to `dist/site/`
-(with its `assets/`), ready for GitHub Pages, Netlify, Cloudflare Pages or any
-static host. CI publishes `dist/site/` to the `gh-pages` branch on every push
-to `main`.
+
+
+Deploying to GitHub Pages: CI renders the site with `npm run page` on every push
+to `main` and publishes `dist/page/` to the `gh-pages` branch.
 
 ## Layout
 
@@ -163,11 +195,8 @@ src/ui.ts         shared shadow-DOM builders (icon, button, lookup)
 src/content.ts    content script: mounted on every top-level page, tick loop, state machine
 src/background.ts service worker: inject on summon, show completion notifications
 src/manifest.ts   per-browser MV3 manifests
-page/index.html   self-contained product page (bundled into every build)
-pages/            multi-page public site (Home, About, Projects, Contact)
-pages/assets/css  shared stylesheet (main.css)
-pages/assets/js   shared interactivity (main.js)
-build.mjs         esbuild bundling, icon generation, page + site render, packaging,
+page/index.html   self-contained product page, bundled into every build
+build.mjs         esbuild bundling, icon generation, page render, packaging,
                   per-OS browser detection for dist/hot/ hot-load extraction
 docs/             design notes: hot-loading workflow, project rules reference
 test/             jsdom suites: page, worker, widget smoke
@@ -211,5 +240,5 @@ section per release tag from v1.0.0 on, parsed at build time into the product pa
 copied here). Every version bump updates it in the same commit; the release invariant, the
 changelog entry standard (user-facing changes only, exact subheadings), the
 README/CHANGELOG placement discipline and the `/release` skill checklist are recorded for
-reference in [docs/project-rules.md](docs/project-rules.md) — they are development-side
+reference in [docs/agent-contract.md](docs/agent-contract.md) — they are development-side
 rules, not product code, so they live outside this repo's build.

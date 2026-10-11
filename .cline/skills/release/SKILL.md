@@ -1,12 +1,12 @@
 ---
 name: release
 description: Cut a Focus Exe release - bump the version, write the CHANGELOG.md entry, run the suites, tag vX.Y.Z, push with --follow-tags and attach the six platform zips. Use when bumping the version, cutting or publishing a release, tagging, or pushing a version update.
+condition: "release or cut a release or publish v"
 ---
 
 # Release
 
-Cut a release for this repo. The release invariant (always-on rule in the agent config,
-mirrored at `docs/project-rules-releases.md`) is authoritative:
+Cut a release for this repo. The always-on rule `AGENTS.md` is authoritative:
 **no version bump without a changelog entry in the same commit, and no release push without an
 annotated `vX.Y.Z` tag.**
 
@@ -40,8 +40,7 @@ This updates `version` in **both** `package.json` and `package-lock.json` (top l
 
 ## 5. Update CHANGELOG.md (same commit as the bump)
 
-- Read the changelog rule (`docs/project-rules-changelog.md` in this repo's docs mirror, or
-  the live copy in the agent config) first — it holds the entry standard (Keep a Changelog,
+- Read `AGENTS.md` first — it holds the entry standard (Keep a Changelog,
   user-facing changes only, exact subheadings, no `### Tests`). This is the only point in
   the release flow that needs it.
 - Move everything under `## [Unreleased]` into a new `## [x.y.z] - YYYY-MM-DD` section directly

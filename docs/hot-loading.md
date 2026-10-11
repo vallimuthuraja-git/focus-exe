@@ -1,3 +1,5 @@
+<!-- DOC: human documentation. Do not read unless the user asks or the task requires it. -->
+
 # Hot-loading the extension during development
 
 `npm run hot` exists so a fix can be tested in a real browser within seconds of a build,
