@@ -51,6 +51,9 @@ jobs:
       # Required for GitHub Pages deployment via Actions.
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
 
@@ -68,4 +71,5 @@ jobs:
           path: dist/page
 
       - name: Deploy to GitHub Pages
+        id: deploy
         uses: actions/deploy-pages@v5
