@@ -64,6 +64,7 @@ AGENTS.md            this file
 | github page, pages, deploy site, product page | `.agents/skills/github-page/SKILL.md` |
 | code, extension, architecture, manifest | `.agents/skills/extension-code/SKILL.md` |
 | write skill, create skill, new skill | `.agents/skills/skill-authoring/SKILL.md` |
+| commit .kilo plans as history (human-only, AI must not run) | `.agents/skills/kilo-history/SKILL.md` |
 
 ## Validation
 
