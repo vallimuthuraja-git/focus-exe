@@ -51,6 +51,7 @@ jobs:
       # Required for GitHub Pages deployment via Actions.
       pages: write
       id-token: write
+    environment: github-pages
     steps:
       - uses: actions/checkout@v7
 
