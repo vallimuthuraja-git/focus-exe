@@ -526,7 +526,15 @@ footer .row .spacer { margin-left: auto; }
         <div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm12 8v10H5V10h14z"/></svg></div>
         <h3>Deadline countdown</h3>
         <p class="muted">A days / hours / minutes / seconds clock to your exam or deadline,
-        pinned in the widget or popped out in the compact bar.</p>
+        pinned in the widget or popped out in the compact bar. **Edit the deadline date
+        directly in the settings panel** — pick a date from a calendar.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+        <h3>Confirmation on close</h3>
+        <p class="muted">Closing the widget asks for confirmation, preventing accidental
+        dismissal. **Confirm or cancel before the widget disappears** — your session is
+        preserved either way.</p>
       </div>
       <div class="card">
         <div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm11.5 2a2.5 2.5 0 0 0-1.5-2.3v4.6A2.5 2.5 0 0 0 14.5 12zm-1.5-8v2.1a6 6 0 0 1 0 11.8V20a8 8 0 0 0 0-16z"/></svg></div>
@@ -686,9 +694,16 @@ footer .row .spacer { margin-left: auto; }
     <h2>What's coming</h2>
     <div class="grid g2" style="margin-top:22px">
       <div class="card">
+        <h3>Released</h3>
+        <ul class="ticks" style="margin-top:8px">
+          <li>Editable deadline picker in settings (calendar with date selection)</li>
+          <li>Confirmation on close (prevents accidental widget dismissal)</li>
+        </ul>
+      </div>
+      <div class="card">
         <h3>Planned</h3>
         <ul class="ticks" style="margin-top:8px">
-          <li>Editable focus / break lengths and deadline inside the settings panel</li>
+          <li>Editable focus / break lengths in settings</li>
           <li>Session history and a simple daily focus chart</li>
           <li>Per-site auto-open list for people who want the widget everywhere</li>
           <li>Signed Chrome Web Store and Firefox AMO listings</li>
@@ -791,15 +806,21 @@ footer .row .spacer { margin-left: auto; }
         the counter updated, without firing a stale notification.</p></div>
       </details>
       <details>
+        <summary>What happens if I click the close button on the widget?</summary>
+        <div><p>A confirmation appears. Confirming closes the widget and stops the session;
+        cancelling keeps the widget open. The timer state is preserved in extension storage
+        either way.</p></div>
+      </details>
+      <details>
         <summary>Why is there no sound until I click something?</summary>
         <div><p>Every browser blocks audio until the page has been interacted with. The first
         click or keypress inside the widget unlocks the audio context, which is why the toggles
         ask for a click before you hear anything.</p></div>
       </details>
       <details>
-        <summary>Can I change the 25 minutes, or the deadline date?</summary>
-        <div><p>They live in <code>src/config.ts</code> — edit and run <code>npm run build</code>.
-        Making them editable in the settings panel is next on the roadmap.</p></div>
+        <summary>Can I change the deadline date?</summary>
+        <div><p>Yes. The deadline is editable in the extension's settings panel via a calendar
+        date picker, and it is persisted in extension storage — no rebuild needed.</p></div>
       </details>
       <details>
         <summary>Is it safe to install an unsigned build?</summary>

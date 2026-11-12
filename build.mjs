@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
 import * as esbuild from 'esbuild';
@@ -183,9 +183,6 @@ const pageHtml = pageSource
   .replaceAll('__REPO_URL__', repoUrl)
 
 
-// The multi-page public site (pages/) was removed; GitHub Pages now serves
-// the single bundled product page (page/index.html) of the extension.
-
 await rm(cache, { recursive: true, force: true });
 await mkdir(cache, { recursive: true });
 
@@ -226,18 +223,6 @@ if (targets.length === 0) {
 }
 
 const icons = new Map([16, 32, 48, 128].map(size => [size, renderIcon(size)]));
-
-/**
- * Stable, version-less folders for local hot-loading.
- *
- * `dist/hot/<browser>` folders are wiped and refilled from the freshly built
- * bundles on every run, so their paths never change across version upgrades.
- * The set is not fixed: the build first detects which browsers are actually
- * installed on this OS (Linux, Windows, macOS) and extracts only those
- * bundles — everything else is skipped and any stale folder removed. Point
- * each browser at its folder once (Load unpacked / Load Temporary Add-on);
- * after that every build hot-loads.
- }
 
 /** Absolute paths a browser binary may live at, per OS. Order matters for
  *  Windows: the per-user install comes first so a portable/system install

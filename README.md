@@ -4,20 +4,21 @@ A Manifest V3 browser extension: a Pomodoro focus timer with a deadline countdow
 and a 60 BPM neuro-metronome. The widget is in every tab and window of every browser on any
 site, synced through shared extension storage.
 
-> **v1.4.0** — released 2026-10-12. Full user-facing history: [CHANGELOG.md](CHANGELOG.md).
+> **v1.4.1** — released 2026-11-13. Full user-facing history: [CHANGELOG.md](CHANGELOG.md).
 > Developer rules (releases, changelog, context discipline): [AGENTS.md](AGENTS.md).
-> Design & workflow notes: [docs/hot-loading.md](docs/hot-loading.md),
-> [docs/agent-contract.md](docs/agent-contract.md).
+> Design & workflow notes: [docs/local-development.md](docs/local-development.md).
 
-**Contents:** [Build](#build) · [Load locally](#load-it-locally) · [Hot-load](#hot-load-after-every-build) · [Test](#test) · [Config](#configuration) · [Product page](#product-page) · [Security](#security-notes) · [Roadmap](#roadmap) · [Changelog](#changelog)
+**Contents:** [Build](#build) · [Load locally](#load-it-locally) · [Test](#test) · [Config](#configuration) · [Product page](#product-page) · [Security](#security-notes) · [Roadmap](#roadmap) · [Changelog](#changelog) · [Agent Skills](#agent-skills)
 
 ## Features
 
 - 25/5 focus and recovery modes, mechanical flip-clock digits, deadline countdown, session
   indicator with progress bar, session counter
+- **Editable deadline picker in settings** (calendar with date selection)
 - Brown noise and a 60 BPM look-ahead metronome that pauses with the tab
 - Confirmation dialogs on every state change, minimise/expand, desktop notification when a
   session or break ends
+- **Confirmation on close** (prevents accidental widget dismissal)
 - Single-tab audio lease: brown noise + metronome audible from exactly one tab, silent in
   every other tab
 - Closed-shadow-root, isolated-world UI; never touches page JavaScript
@@ -28,7 +29,6 @@ site, synced through shared extension storage.
 npm install
 npm run build        # all browsers into dist/
 npm run dev          # unminified with inline sourcemaps
-npm run hot          # build + extract only installed browsers to dist/hot/<browser>/
 npm run pack         # signed-ready .zip per browser
 npm run verify       # type-check + packaged build
 npm test             # build, then run the suites in test/
@@ -45,23 +45,11 @@ Targets: chrome, edge, brave, opera, firefox, safari (Safari needs the Xcode con
 - **Firefox** — `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → `dist/firefox/manifest.json`
 - **Safari** — `xcrun safari-web-extension-converter dist/safari --macos-only --no-open`, then enable in Safari → Settings → Extensions
 
-## Hot-load after every build
-
-`npm run hot` builds, detects which browsers are installed on this OS, and extracts only those
-bundles into stable, version-less folders under `dist/hot/<browser>/`. `npm test` also builds
-with `--hot`. Point each browser at its folder once; every later `npm run hot` wipes and
-refills those folders in place, so the browser picks up the newest code without re-picking the
-folder. Full details: [docs/hot-loading.md](docs/hot-loading.md).
-
 ## Test
 
-`npm test` builds (with `--hot`, refreshing the stable hot-load folders), then verifies the
-build artifacts, that the manifest declares the all-URL content script (3 checks), that every
-`dist/hot/` folder mirrors its built bundle (3 checks per detected browser), and runs three
-suites (150 checks) in `test/`: `test/page.mjs`, `test/worker.mjs`, `test/smoke.mjs`. The
-suites load the **built** bundles from `dist/chrome/`, so they check what actually ships.
-`npm run verify` type-checks and packages but does not run the suites; `npm test` is the full
-gate. CI runs both.
+`npm test` builds, then verifies the build artifacts, that the manifest declares the all-URL content script (3 checks), that every `dist/<browser>/` folder mirrors its built bundle (3 checks per detected browser), and runs three suites in `test/`: `test/page.mjs`, `test/worker.mjs`, `test/smoke.mjs`. The suites load the **built** bundles from `dist/chrome/`, so they check what actually ships.
+
+`npm run verify` type-checks and packages but does not run the suites; `npm test` is the full gate. CI runs both.
 
 ## Configuration
 
@@ -127,7 +115,7 @@ test/                jsdom suites: page, worker, widget smoke
 
 ## Roadmap
 
-v1 is deliberately small. Likely v2 additions: editable focus/break lengths and deadline in
+v1 is deliberately small. Likely v2 additions: editable focus/break lengths in
 settings, per-tab vs global session stats, session history chart, custom sound packs, and an
 optional "auto-open on this site" list.
 
@@ -135,3 +123,9 @@ optional "auto-open on this site" list.
 
 Full version history in [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog format, one section per
 release tag, user-facing changes only.
+
+## Agent Skills
+
+Specialized instructions and workflows for specific tasks live in
+[.agents/skills/](.agents/skills/). Run `node scripts/validate-skills.mjs` after adding or
+changing any skill.

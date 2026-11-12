@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-11-13
+
+### Added
+
+- Editable deadline picker in settings (calendar with date selection)
+- Close confirmation on widget badge close button
+
+### Changed
+
+- Deadline uses stored date (not build-time constant)
+- Clean teardown on close: releases all per-session resources
+
+### Fixed
+
+- Widget can be re-summoned after close
+
 ## [1.4.0] - 2026-10-12
 
 ### Added
@@ -132,7 +148,8 @@ First release: pre-exam focus userscript → Manifest V3 extension.
 
 ---
 
-[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/vallimuthuraja-git/focus-exe/compare/v1.2.0...v1.3.0
