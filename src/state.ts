@@ -12,6 +12,8 @@ export interface AppState {
   brownNoise: boolean;
   metronome: boolean;
   minimized: boolean;
+  /** Epoch ms of the user's deadline date (start of day, local). Defaults to the built-in Dec 31 deadline. */
+  deadline: number;
 }
 
 export function defaultState(): AppState {
@@ -23,7 +25,8 @@ export function defaultState(): AppState {
     sessions: 0,
     brownNoise: true,
     metronome: true,
-    minimized: false
+    minimized: false,
+    deadline: DEADLINE.getTime()
   };
 }
 
@@ -71,8 +74,14 @@ export function sanitize(raw: Partial<AppState> | null | undefined): AppState {
     sessions: clampNumber(raw.sessions, 0, MAX_SESSIONS, 0),
     brownNoise: raw.brownNoise !== false,
     metronome: raw.metronome !== false,
-    minimized: raw.minimized === true
+    minimized: raw.minimized === true,
+    deadline: finiteOrDeadline(raw.deadline)
   };
+}
+
+function finiteOrDeadline(value: unknown): number {
+  const parsed = typeof value === 'number' ? value : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : DEADLINE.getTime();
 }
 
 export function durationMs(state: AppState): number {
@@ -89,8 +98,8 @@ export function remainingMs(state: AppState, now = Date.now()): number {
   return durationMs(state);
 }
 
-export function deadlineRemainingMs(now = Date.now()): number {
-  return Math.max(0, DEADLINE.getTime() - now);
+export function deadlineRemainingMs(deadlineMs: number, now = Date.now()): number {
+  return Math.max(0, deadlineMs - now);
 }
 
 /** Applies an elapsed timer: counts the session and flips to the opposite mode. */

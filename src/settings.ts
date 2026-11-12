@@ -1,19 +1,23 @@
 import { CONFIG, type IconName } from './config';
+import { createDeadlinePicker, type DeadlinePicker } from './calendar';
 import { button, icon } from './ui';
 
 /**
- * The settings panel: the audio toggles plus the external links (About &
- * support, GitHub). It is built twice per widget — once for the expanded view
- * and once for the minimized popover — so both views offer the same options.
+ * The settings panel: the deadline picker, the audio toggles and the external
+ * links (About & support, GitHub). It is built twice per widget — once for the
+ * expanded view and once for the minimized popover — so both views offer the
+ * same options.
  */
 
-export type SettingKey = 'brownNoise' | 'metronome';
+export type SettingKey = 'brownNoise' | 'metronome' | 'deadline';
 
 /** Where a link row sends the user. Resolved by the service worker. */
 export type SettingsLink = 'about' | 'github';
 
 export interface SettingsPanel {
   fragment: DocumentFragment;
+  /** The deadline row, trigger and calendar for this panel. */
+  deadline: DeadlinePicker;
   /** One input per panel, so the widget can mirror state into both panels. */
   noise: HTMLInputElement;
   metronome: HTMLInputElement;
@@ -94,11 +98,17 @@ function linkRow(spec: LinkSpec): HTMLButtonElement {
   return node;
 }
 
-export function createSettingsPanel(title: string): SettingsPanel {
+export function createSettingsPanel(
+  title: string,
+  onDeadlineChange: (value: number) => void
+): SettingsPanel {
   const fragment = document.createDocumentFragment();
   const heading = document.createElement('div');
   heading.className = 'settings-title';
   heading.append(icon('settings'), document.createTextNode(title));
+
+  const deadline = createDeadlinePicker(onDeadlineChange);
+  fragment.appendChild(deadline.row);
 
   const inputs = new Map<SettingKey, HTMLInputElement>();
   for (const spec of TOGGLES) {
@@ -127,5 +137,5 @@ export function createSettingsPanel(title: string): SettingsPanel {
     throw new Error('[Focus Exe] Settings panel is missing an audio toggle.');
   }
 
-  return { fragment, noise, metronome, links };
+  return { fragment, deadline, noise, metronome, links };
 }

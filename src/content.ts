@@ -92,8 +92,7 @@ async function mount(): Promise<WidgetSession> {
       state = { ...state, minimized };
       store.save();
       render(false);
-    },
-    onClose: () => unmount()
+    }
   });
 
   shadow.appendChild(widget.root);
@@ -142,7 +141,7 @@ async function mount(): Promise<WidgetSession> {
     void sendMessage({ type: COMPLETE, mode: result.completedMode });
   }
 
-  function setSetting(key: SettingKey, value: boolean): void {
+  function setSetting(key: SettingKey, value: boolean | number): void {
     state = { ...state, [key]: value };
     commit();
   }
@@ -153,6 +152,10 @@ async function mount(): Promise<WidgetSession> {
 
   function runAction(kind: ActionKind): void {
     switch (kind) {
+      case 'close': {
+        unmount();
+        return;
+      }
       case 'toggle': {
         if (state.running) {
           state = { ...state, running: false, endAt: null, remaining: remainingMs(state) };
@@ -247,6 +250,7 @@ async function mount(): Promise<WidgetSession> {
       document.removeEventListener('pointerdown', onDocumentPointerDown, true);
       document.removeEventListener('pointerdown', onPageGesture, true);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
       widget.dispose();
       store.flush();
       audio.dispose();

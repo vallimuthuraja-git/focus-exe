@@ -105,6 +105,77 @@ check('focus clock reads 25:00', app.digits('.focus-clock:not(.mini-clock)') ===
 check('mini clock reads 25:00', app.digits('.mini-clock') === '2500', app.digits('.mini-clock'));
 check('deadline clock has 9 digits', app.digits('.card .deadline-clock').length === 9, app.digits('.card .deadline-clock'));
 check('deadline label built from config', app.text('.deadline-label') === 'December 31 deadline', app.text('.deadline-label'));
+check('deadline settings row exists', Boolean(app.root().querySelector('.expanded-settings-panel .deadline-row')));
+check('deadline trigger exists', Boolean(app.root().querySelector('.expanded-settings-panel .deadline-trigger')));
+check('deadline row is the first setting', Boolean(app.root().querySelector('.expanded-settings-panel .settings-title + .deadline-row')));
+check('deadline card has no native date input', !app.root().querySelector('.deadline-card .deadline-date-input'));
+check('deadline panel has no native date input', !app.root().querySelector('.deadline-panel .deadline-date-input'));
+
+/* A custom persisted deadline is reflected in the label and the trigger on mount. */
+const customDeadlineMs = new Date(2027, 5, 15).getTime(); // local midnight, June 15 2027 in this env
+const expectedLabel = new Intl.DateTimeFormat(undefined, { month: 'long', day: 'numeric' }).format(new Date(customDeadlineMs)) + ' deadline';
+const custom = boot({
+  seed: {
+    mode: 'focus',
+    running: false,
+    endAt: null,
+    remaining: null,
+    sessions: 0,
+    brownNoise: true,
+    metronome: true,
+    minimized: false,
+    deadline: customDeadlineMs
+  }
+});
+custom.window.eval(bundle);
+await wait(250);
+check('custom deadline label rendered from state', custom.text('.deadline-label') === expectedLabel, custom.text('.deadline-label'));
+const customTriggerText = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(customDeadlineMs));
+check('custom deadline trigger mirrors state', custom.root()?.querySelector('.expanded-settings-panel .deadline-trigger')?.textContent === customTriggerText);
+check('mini deadline trigger mirrors state', custom.root()?.querySelector('.mini-settings-panel .deadline-trigger')?.textContent === customTriggerText);
+check('both panels expose the deadline row', Boolean(custom.root()?.querySelector('.mini-settings-panel .deadline-row')));
+
+/* Picking a new date persists it and refreshes the label. */
+app.click('.settings-button');
+await wait(60);
+const expandedTrigger = app.root().querySelector('.expanded-settings-panel .deadline-trigger');
+expandedTrigger.dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+await wait(60);
+const expandedCalendar = app.root().querySelector('.expanded-settings-panel .calendar-popover');
+check('deadline calendar opens', expandedCalendar.classList.contains('open'));
+check('deadline trigger aria-expanded', expandedTrigger.getAttribute('aria-expanded') === 'true');
+
+const defaultDeadline = new Date(2026, 11, 31); // mirrors the built-in default deadline
+const pick = new Date(defaultDeadline.getFullYear(), defaultDeadline.getMonth(), 15, 0, 0, 0, 0);
+const pickKey = `${pick.getFullYear()}-${String(pick.getMonth() + 1).padStart(2, '0')}-${String(pick.getDate()).padStart(2, '0')}`;
+const pickDay = app.root().querySelector(`.expanded-settings-panel .calendar-day[data-date="${pickKey}"]`);
+check('deadline calendar renders the selected month', Boolean(pickDay));
+pickDay.dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+await wait(350);
+check('deadline change persisted', app.store.focusExeStateV1?.deadline === pick.getTime(), JSON.stringify(app.store.focusExeStateV1?.deadline));
+check('deadline label updated after pick', app.text('.deadline-label') === new Intl.DateTimeFormat(undefined, { month: 'long', day: 'numeric' }).format(pick) + ' deadline', app.text('.deadline-label'));
+check('deadline calendar closes after pick', !app.root().querySelector('.expanded-settings-panel .calendar-popover').classList.contains('open'));
+check('deadline trigger aria-expanded reset', expandedTrigger.getAttribute('aria-expanded') === 'false');
+
+/* Escape closes the calendar, and past days are disabled. */
+expandedTrigger.dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+await wait(50);
+app.root().querySelector('.expanded-settings-panel .calendar-popover')
+  .dispatchEvent(new app.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+await wait(50);
+check('escape closes the deadline calendar', !app.root().querySelector('.expanded-settings-panel .calendar-popover').classList.contains('open'));
+
+expandedTrigger.dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+await wait(50);
+const previousMonthButton = app.root().querySelector('.expanded-settings-panel .calendar-nav[aria-label="Previous month"]');
+previousMonthButton.dispatchEvent(new app.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+await wait(50);
+const pastMonth = new Date(defaultDeadline.getFullYear(), defaultDeadline.getMonth() - 1, 1);
+const pastKey = `${pastMonth.getFullYear()}-${String(pastMonth.getMonth() + 1).padStart(2, '0')}-01`;
+const pastDay = app.root().querySelector(`.expanded-settings-panel .calendar-day[data-date="${pastKey}"]`);
+check('past deadline days are disabled', pastDay?.disabled === true, String(pastDay?.disabled));
+app.root().dispatchEvent(new app.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
 check('mode label', app.text('.mode-label') === 'Focus session');
 check('both audio toggles on', app.root().querySelectorAll('.switch input:checked').length === 4);
 
@@ -231,15 +302,59 @@ app.window.document.dispatchEvent(new app.window.MouseEvent('pointerdown', { bub
 await wait(80);
 check('already minimized stays', app.root().classList.contains('minimized'));
 
-/* Badge close hides the widget entirely, like the toolbar hide command. */
+/* Badge close asks for confirmation first; cancel keeps the widget, confirm tears it down. */
 app.click('.badge-close-button');
 await wait(80);
-check('badge close tears the widget down', !app.host());
+check('badge close asks for confirmation', app.root().classList.contains('confirming-compact') && Boolean(app.host()));
+app.click('.compact-cancel-button');
+await wait(80);
+check('badge close cancel keeps the widget', !app.root().classList.contains('confirming-compact') && Boolean(app.host()));
+
+app.click('.badge-close-button');
+await wait(80);
+app.click('.compact-confirm-button');
+await wait(80);
+check('badge close confirm tears the widget down', !app.host());
 check('badge close flushed state on teardown', typeof app.store.focusExeStateV1?.mode === 'string');
+
 app.deliver({ type: 'focus-exe/command:show' });
 await wait(80);
 check('widget remounts after badge close', Boolean(app.host()) && Boolean(app.root()));
 check('remounted widget still has one badge close', app.root().querySelectorAll('.badge-close-button').length === 1);
+
+/* Expanded confirmation shows the close message; cancel keeps the widget, confirm tears it down. */
+app.click('.minimize-button');
+await wait(80);
+check('expanded after remount', !app.root().classList.contains('minimized'));
+app.click('.badge-close-button');
+await wait(80);
+check('expanded badge close asks for confirmation', app.root().classList.contains('confirming-expanded'));
+check('expanded close confirmation copy', app.text('.confirmation-message') === 'Close Focus Exe?', app.text('.confirmation-message'));
+app.click('.cancel-button');
+await wait(80);
+check('expanded close cancel keeps the widget', !app.root().classList.contains('confirming-expanded') && Boolean(app.host()));
+
+app.click('.badge-close-button');
+await wait(80);
+app.click('.confirm-button');
+await wait(80);
+check('expanded close confirm tears the widget down', !app.host());
+
+/* A closed session must not keep pagehide/visibilitychange listeners that write storage. */
+let teardownWrites = 0;
+const originalSet = app.window.chrome.storage.local.set;
+app.window.chrome.storage.local.set = (items, cb) => {
+  teardownWrites += 1;
+  originalSet(items, cb);
+};
+app.window.dispatchEvent(new app.window.Event('pagehide'));
+app.window.document.dispatchEvent(new app.window.Event('visibilitychange'));
+await wait(80);
+check('closed session releases pagehide/visibilitychange listeners', teardownWrites === 0, String(teardownWrites));
+
+app.deliver({ type: 'focus-exe/command:show' });
+await wait(80);
+check('widget mounts again for command tests', Boolean(app.host()));
 
 app.deliver({ type: 'focus-exe/command:toggle' });
 await wait(80);

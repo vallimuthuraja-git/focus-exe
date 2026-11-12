@@ -1,23 +1,21 @@
 import settingsStyles from './settings.css';
 import widgetStyles from './widget.css';
 import { createDeadlineClock, createFocusClock, updateDeadlineClock, updateFocusClock } from './clock';
-import { COLORS, CONFIG, DEADLINE } from './config';
+import { COLORS, CONFIG } from './config';
 import { createSettingsPanel, type SettingKey, type SettingsLink } from './settings';
 import { deadlineRemainingMs, durationMs, type AppState } from './state';
 import { button, icon, need, popButton, replaceIcon } from './ui';
 
 export type { SettingKey, SettingsLink } from './settings';
 
-export type ActionKind = 'toggle' | 'reset' | 'switch';
+export type ActionKind = 'toggle' | 'reset' | 'switch' | 'close';
 
 export interface WidgetHooks {
   onGesture(): void;
   onAction(kind: ActionKind): void;
-  onSetting(key: SettingKey, value: boolean): void;
+  onSetting(key: SettingKey, value: boolean | number): void;
   onOpen(target: SettingsLink): void;
   onMinimize(minimized: boolean): void;
-  /** The badge close button was hit: tear the widget down for this page. */
-  onClose(): void;
 }
 
 /** The element that bounds the widget's UI (its shadow-root host). The
@@ -120,10 +118,10 @@ const MARKUP = `
     </div>
 `;
 
-const DEADLINE_LABEL = new Intl.DateTimeFormat(undefined, {
+const DEADLINE_MONTH_DAY = new Intl.DateTimeFormat(undefined, {
   month: 'long',
   day: 'numeric'
-}).format(DEADLINE);
+});
 
 const DATE_FORMAT = new Intl.DateTimeFormat(undefined, {
   weekday: 'short',
@@ -160,7 +158,11 @@ export function createWidget(hooks: WidgetHooks): Widget {
   need(root, '.progress-track-slot').appendChild(progressTrack);
 
   for (const label of Array.from(root.querySelectorAll('.deadline-label'))) {
-    label.textContent = `${DEADLINE_LABEL} deadline`;
+    label.textContent = '';
+  }
+
+  function deadlineLabelFor(deadlineMs: number): string {
+    return `${DEADLINE_MONTH_DAY.format(new Date(deadlineMs))} deadline`;
   }
 
   const minimizeBtn = button('icon-button minimize-button', 'minimize', '', 'Minimize');
@@ -196,9 +198,16 @@ export function createWidget(hooks: WidgetHooks): Widget {
   const compactCancel = button('compact-cancel-button', 'cancel', 'Cancel', 'Cancel');
   need(root, '.mini-confirmation').append(compactConfirm, compactCancel);
 
-  // Both views get the same panel, so About/GitHub and the audio toggles are
-  // reachable whether the widget is expanded or collapsed.
-  const panels = [createSettingsPanel('Settings'), createSettingsPanel('Settings')];
+  // Both views get the same panel, so the deadline picker, About/GitHub and
+  // the audio toggles are reachable whether the widget is expanded or collapsed.
+  const commitDeadline = (value: number): void => {
+    hooks.onGesture();
+    hooks.onSetting('deadline', value);
+  };
+  const panels = [
+    createSettingsPanel('Settings', commitDeadline),
+    createSettingsPanel('Settings', commitDeadline)
+  ];
   need(root, '.expanded-settings-panel').appendChild(panels[0].fragment);
   need(root, '.mini-settings-panel').appendChild(panels[1].fragment);
 
@@ -208,6 +217,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
   const deadlinePanel = need(root, '.deadline-panel');
   const deadlinePanelClock = need<HTMLElement>(root, '.deadline-panel .deadline-clock');
   const deadlinePanelDate = need(root, '.deadline-panel-date');
+
   const deadlineClock = need<HTMLElement>(root, '.deadline-clock');
   const focusClock = need<HTMLElement>(root, '.focus-clock:not(.mini-clock)');
   const miniClock = need<HTMLElement>(root, '.mini-clock');
@@ -232,6 +242,9 @@ export function createWidget(hooks: WidgetHooks): Widget {
     miniSettingsPanel.classList.remove('visible');
     settingsBtn.setAttribute('aria-expanded', 'false');
     popSettings.setAttribute('aria-expanded', 'false');
+    for (const panel of panels) {
+      panel.deadline.close();
+    }
   }
 
   function closeDeadline(): void {
@@ -252,6 +265,9 @@ export function createWidget(hooks: WidgetHooks): Widget {
     const other = fromMini ? expandedSettingsPanel : miniSettingsPanel;
 
     other.classList.remove('visible');
+    for (const panel of panels) {
+      panel.deadline.close();
+    }
     const visible = target.classList.toggle('visible');
     settingsBtn.setAttribute('aria-expanded', String(!fromMini && visible));
     popSettings.setAttribute('aria-expanded', String(fromMini && visible));
@@ -277,6 +293,9 @@ export function createWidget(hooks: WidgetHooks): Widget {
     }
     if (kind === 'switch') {
       return breakMode ? 'Return to focus mode?' : 'Switch to recovery mode?';
+    }
+    if (kind === 'close') {
+      return 'Close Focus Exe?';
     }
     if (state?.running) {
       return 'Pause the current timer?';
@@ -345,12 +364,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
     hooks.onMinimize(minimized);
   });
 
-  closeBtn.addEventListener('click', event => {
-    event.preventDefault();
-    event.stopPropagation();
-    hooks.onGesture();
-    hooks.onClose();
-  });
+  requestAction(closeBtn, 'close');
 
   toggleFrom(settingsBtn, () => toggleSettings(false));
   toggleFrom(popSettings, () => toggleSettings(true));
@@ -465,7 +479,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
     const now = Date.now();
     const visibleAnimate = animate && !minimized;
 
-    updateDeadlineClock(deadlineClock, deadlineRemainingMs(now), visibleAnimate);
+    updateDeadlineClock(deadlineClock, deadlineRemainingMs(state.deadline, now), visibleAnimate);
     updateFocusClock(focusClock, remaining, visibleAnimate);
     updateFocusClock(miniClock, remaining, animate && minimized);
 
@@ -474,6 +488,15 @@ export function createWidget(hooks: WidgetHooks): Widget {
 
     root.classList.toggle('break-mode', breakMode);
     dateLabel.textContent = DATE_FORMAT.format(new Date(now));
+    const deadlineLabelText = deadlineLabelFor(state.deadline);
+    for (const label of Array.from(root.querySelectorAll('.deadline-label'))) {
+      label.textContent = deadlineLabelText;
+    }
+    // Mirror the stored deadline into both pickers so a change made on another
+    // tab (or in the other view) is reflected here too.
+    for (const panel of panels) {
+      panel.deadline.setValue(state.deadline);
+    }
     modeLabel.textContent = modeText;
     miniLabel.textContent = modeText;
     guidance.textContent = breakMode ? 'Rest briefly, then return' : 'One lesson at a time';
@@ -514,7 +537,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
         : 'Ready';
 
     if (deadlinePanel.classList.contains('visible')) {
-      updateDeadlineClock(deadlinePanelClock, deadlineRemainingMs(now), animate && minimized);
+      updateDeadlineClock(deadlinePanelClock, deadlineRemainingMs(state.deadline, now), animate && minimized);
       deadlinePanelDate.textContent = DATE_FORMAT.format(new Date(now));
     }
   }
@@ -526,6 +549,7 @@ export function createWidget(hooks: WidgetHooks): Widget {
     closeOverlays,
     setWidgetHost,
     dispose(): void {
+      closeOverlays();
       root.removeEventListener('pointerleave', onPointerLeave);
       root.removeEventListener('keydown', onKeyDown);
       root.removeEventListener('pointerdown', onWidgetPointerDown);

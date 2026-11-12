@@ -181,6 +181,209 @@
     opacity: .75;
 }
 
+/* ---- deadline date picker: settings row + calendar popover ---- */
+
+.deadline-row {
+    position: relative;
+}
+
+.deadline-trigger {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 5px;
+    min-height: 26px;
+    padding: 3px 7px;
+    color: var(--text);
+    background: #181b1e;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: 600 10px/1.2 "Segoe UI", Roboto, Arial, sans-serif;
+    cursor: pointer;
+    transition:
+        color 120ms ease,
+        background-color 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.deadline-trigger:hover,
+.deadline-trigger:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(120, 214, 255, .22);
+    outline: none;
+}
+
+.deadline-trigger-value {
+    white-space: nowrap;
+}
+
+.deadline-trigger-icon {
+    width: 13px;
+    height: 13px;
+    color: var(--muted);
+    transition: transform 160ms ease;
+}
+
+.deadline-trigger[aria-expanded="true"] .deadline-trigger-icon {
+    transform: rotate(180deg);
+}
+
+.calendar-popover {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: none;
+    padding: 8px;
+    color: var(--text);
+    background: linear-gradient(145deg, #292f35, #181c20);
+    border: 1px solid rgba(120, 214, 255, .35);
+    border-radius: 9px;
+    box-shadow:
+        0 16px 34px rgba(0, 0, 0, .52),
+        0 4px 12px rgba(0, 0, 0, .35);
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+}
+
+.calendar-popover.open {
+    display: block;
+    animation: calendar-in 150ms cubic-bezier(.2, .8, .25, 1);
+}
+
+@keyframes calendar-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(.99);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.calendar-month {
+    flex: 1;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.calendar-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid rgba(255, 255, 255, .17);
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+        color 120ms ease,
+        background-color 120ms ease,
+        border-color 120ms ease;
+}
+
+.calendar-nav .material-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.calendar-nav:hover,
+.calendar-nav:focus-visible {
+    color: #fff;
+    background: var(--surface-hover);
+    border-color: rgba(120, 214, 255, .58);
+    outline: none;
+}
+
+.calendar-nav:disabled {
+    cursor: not-allowed;
+    opacity: .35;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.calendar-weekdays {
+    margin-bottom: 2px;
+}
+
+.calendar-weekdays span {
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font: 600 10px/1 "Segoe UI", Roboto, Arial, sans-serif;
+    cursor: pointer;
+    transition:
+        color 120ms ease,
+        background-color 120ms ease,
+        border-color 120ms ease;
+}
+
+.calendar-day:hover {
+    background: var(--surface-hover);
+}
+
+.calendar-day:focus-visible {
+    outline: 2px solid rgba(120, 214, 255, .6);
+    outline-offset: 1px;
+}
+
+.calendar-day.today {
+    border-color: rgba(120, 214, 255, .55);
+}
+
+.calendar-day.selected {
+    color: #0b1114;
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 800;
+}
+
+.calendar-day:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: .35;
+}
+
+.calendar-blank {
+    visibility: hidden;
+}
+
 @media (max-width: 900px) {
     .expanded-settings-panel {
         left: 8px;
@@ -191,6 +394,17 @@
 
 @media (prefers-reduced-motion: reduce) {
     .settings-panel {
+        transition-duration: 1ms;
+    }
+
+    .calendar-popover.open {
+        animation: none;
+    }
+
+    .deadline-trigger,
+    .deadline-trigger-icon,
+    .calendar-nav,
+    .calendar-day {
         transition-duration: 1ms;
     }
 }

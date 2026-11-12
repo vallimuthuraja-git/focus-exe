@@ -716,8 +716,8 @@ button {
 
 .deadline-panel.visible {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     padding: 11px;
 }
